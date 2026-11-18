@@ -1,7 +1,9 @@
-
+import HeroSection from "@/components/homepage/HeroSection";
 
 export default function Home() {
   return (
-    <h2>Home Page</h2>
+    <main className="flex-1">
+      <HeroSection />
+    </main>
   );
 }
