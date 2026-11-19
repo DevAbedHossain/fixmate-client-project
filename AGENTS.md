@@ -65,3 +65,18 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - Blue `ArrowRight` connectors between cards — horizontal on `md+`, rotated 90° (pointing down) on mobile to show the flow.
 - [x] **Verified** with headless Chrome screenshots at 1440px and 500px widths against the dev server on port 3000, plus `npx tsc --noEmit`, `npm run lint`, and `npm run build` — all pass.
 
+### Popular Categories section (FixMate)
+
+- [x] **Built `src/components/homepage/PopularCategories.tsx`** (client component) and wired it up in `src/app/page.tsx` (the page order in `page.tsx` was updated by the user: Hero → PopularCategories → HowItWorks → WhyChoosUs; `OurWorkingProcess` was removed from the page by the user).
+- [x] **Exported the requested union type** — `export type Category = "Smartphone" | "Laptop & PC" | "AC" | "Refrigerator" | "TV" | "Washing Machine" | "Electrical"`.
+- [x] **Clickable category tiles** — `<button aria-pressed>` per category (group with `role="group"`), flex-wrap + `justify-center` so partial rows stay centered at every breakpoint (2 → 3 → 4 → 7 columns via `w-[calc(...)]`).
+  - Selected state: brand border, tinted background, filled icon circle, check badge; unselected tiles lift on hover; `focus-visible` outline for keyboard users.
+- [x] **Selected-category panel** (`aria-live="polite"`) — icon + name + tagline, a “Browse All Services” link to `/services`, and 3 service cards per category (title, description, typical turnaround with a clock icon); content fades in via `motion-safe:animate-in` keyed on the selection.
+- [x] **Verified the interaction end-to-end** with a Chrome DevTools Protocol script (Node global WebSocket): clicked the “AC” tile, asserted `aria-pressed` moved to AC and the panel swapped to AC’s services (Full Servicing, Gas Refill, Compressor Repair), and captured a screenshot of the selected state.
+
+### Why Choose Us section (FixMate)
+
+- [x] **Built `src/components/homepage/WhyChoosUs.tsx`** (server component — no interactivity, so no `"use client"`) with the three trust points from the spec merged with platform stats: **Verified Technicians (500+)**, **Jobs Completed (12,000+)**, **Pay After Service (0%)**.
+- [x] **Layout** — light gradient section with soft brand/sky blur blobs; centered pill badge (“Why Choose Us”) + heading; 3 trust cards (icon + big stat + title + description); then a brand-blue **4.9 rating card** (amber stars) beside 2 testimonial figures (stars, quote, initials avatar, name/location).
+- [x] **Verified** with headless Chrome screenshots at 1440px and 500px (both sections responsive), the CDP click test above, plus `npx tsc --noEmit`, `npm run lint`, and `npm run build` — all pass.
+
