@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { ArrowRight, BadgeCheck, Search, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, BadgeCheck, ShieldCheck, Zap } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const features = [
   {
@@ -47,36 +48,16 @@ const HeroSection = () => {
             step and pay only when the job is done.
           </p>
 
-          <form
-            action="/services"
-            role="search"
-            className="mt-8 flex w-full max-w-xl flex-col gap-2 rounded-2xl border border-border/60 bg-background p-2 shadow-lg shadow-brand/5 sm:flex-row sm:items-center sm:rounded-full"
-          >
-            <label htmlFor="hero-search" className="sr-only">
-              What needs to be repaired?
-            </label>
-            <div className="flex flex-1 items-center gap-3 pl-3">
-              <Search
-                className="size-5 shrink-0 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <input
-                id="hero-search"
-                name="q"
-                type="search"
-                placeholder="What needs to be repaired?"
-                className="h-11 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:text-base"
-              />
-            </div>
+          <Link href="/services">
             <Button
-              type="submit"
+              type="button"
               size="lg"
-              className="h-12 w-full rounded-xl bg-brand px-6 text-brand-foreground hover:bg-brand/90 sm:w-auto sm:rounded-full"
+              className="mt-5 cursor-pointer h-12 w-full rounded-xl bg-brand px-6 text-brand-foreground hover:bg-brand/90 sm:w-auto sm:rounded-full"
             >
               Explore Services
               <ArrowRight className="size-4" aria-hidden="true" />
             </Button>
-          </form>
+          </Link>
 
           <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
             {features.map((feature) => {

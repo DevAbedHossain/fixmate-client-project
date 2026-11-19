@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone, Wrench } from "lucide-react";
+import { categoriesData } from "@/lib/globalshare/Category";
 
 type IconProps = { className?: string };
 
@@ -89,6 +90,8 @@ const contactInfo = [
   },
 ] as const;
 
+const categories = categoriesData;
+
 const linkClass =
   "text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
@@ -156,7 +159,13 @@ const Footer = () => {
               Popular Categories
             </h2>
             <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 lg:grid-cols-1">
-
+              {categories.map((link) => (
+                <li key={link.slug}>
+                  <Link href={`/services?category=${link.slug}`} className={linkClass}>
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
 
