@@ -296,7 +296,7 @@ const SignUpPage = () => {
 
                 {/* RIGHT SIDE - SIGNUP FORM */}
                 <section className="flex w-full items-center justify-center py-6 lg:py-12">
-                    <div className="w-full max-w-[480px]">
+                    <div className="w-full">
 
                         {/* Mobile Brand */}
                         <Link

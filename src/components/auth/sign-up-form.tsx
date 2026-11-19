@@ -1,27 +1,24 @@
-
 "use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
-import {
-    Camera,
-    Check,
-    Eye,
-    EyeOff,
-    User,
-    Wrench,
-    X,
-    Mail,
-    LockKeyhole,
-    ArrowRight,
-    ShieldCheck,
-    Upload,
-} from "lucide-react";
+import { Camera, Check, Eye, EyeOff, User, UserPlus, Wrench, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "cn";
+import { signUp } from "@/lib/auth-client";
+import { toast } from "../ui/toast";
+import { useRouter } from "next/navigation";
 
 type FieldKey = "fullName" | "email" | "password";
 type FormValues = Record<FieldKey, string>;
@@ -29,37 +26,27 @@ type Role = "customer" | "technician";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
+// Admin is intentionally not listed: it must never be selectable from the sign-up UI.
+// Server-side, anything other than "customer" | "technician" must be saved as "customer".
 const ROLES = [
     {
         value: "customer" as const,
         title: "Customer",
-        description: "Find services and book trusted technicians.",
+        description: "Book repairs and hire technicians.",
         icon: User,
     },
     {
         value: "technician" as const,
         title: "Technician",
-        description: "Offer repair services and grow your business.",
+        description: "Offer your services and get hired.",
         icon: Wrench,
     },
 ];
 
 const PASSWORD_RULES = [
-    {
-        id: "length",
-        label: "At least 6 characters",
-        test: (p: string) => p.length >= 6,
-    },
-    {
-        id: "uppercase",
-        label: "One uppercase letter",
-        test: (p: string) => /[A-Z]/.test(p),
-    },
-    {
-        id: "lowercase",
-        label: "One lowercase letter",
-        test: (p: string) => /[a-z]/.test(p),
-    },
+    { id: "length", label: "At least 6 characters", test: (p: string) => p.length >= 6 },
+    { id: "uppercase", label: "One uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
+    { id: "lowercase", label: "One lowercase letter", test: (p: string) => /[a-z]/.test(p) },
 ] as const;
 
 function validate(values: FormValues) {
@@ -79,7 +66,7 @@ function validate(values: FormValues) {
         errors.password = "Password is required.";
     } else if (!PASSWORD_RULES.every((rule) => rule.test(values.password))) {
         errors.password =
-            "Password must meet all the requirements below.";
+            "Password must be at least 6 characters with one uppercase and one lowercase letter.";
     }
 
     return errors;
@@ -91,23 +78,36 @@ const SignUpForm = () => {
         email: "",
         password: "",
     });
-
     const [role, setRole] = useState<Role>("customer");
     const [showPassword, setShowPassword] = useState(false);
-    const [touched, setTouched] = useState<
-        Partial<Record<FieldKey, boolean>>
-    >({});
+    const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({});
     const [submitted, setSubmitted] = useState(false);
-
-    const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const router = useRouter();
 
     const errors = validate(values);
-
     const showError = (field: FieldKey) =>
-        (submitted || touched[field]) && errors[field]
-            ? errors[field]
-            : undefined;
+        (submitted || touched[field]) && errors[field] ? errors[field] : undefined;
+
+    const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file)
+
+        const imgbbAPI = `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`;
+
+        const res = await fetch(imgbbAPI, {
+            method: "POST",
+            body: formData
+        })
+        const result = await res.json();
+        const imageURL = result.data.url;
+        console.log("image url", imageURL)
+
+        setImagePreview(imageURL)
+    };
 
     const updateField = (field: FieldKey, value: string) => {
         setValues((prev) => ({ ...prev, [field]: value }));
@@ -117,363 +117,293 @@ const SignUpForm = () => {
         setTouched((prev) => ({ ...prev, [field]: true }));
     };
 
-    const handleImageChange = (
-        event: React.ChangeEvent<HTMLInputElement>,
-    ) => {
-        const file = event.target.files?.[0] ?? null;
-
-        if (!file) return;
-
-        if (imagePreview) URL.revokeObjectURL(imagePreview);
-
-        setImageFile(file);
-        setImagePreview(URL.createObjectURL(file));
-    };
-
-    const removeImage = () => {
-        if (imagePreview) URL.revokeObjectURL(imagePreview);
-
-        setImagePreview(null);
-        setImageFile(null);
-    };
-
-    const handleSignUp = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setSubmitted(true);
 
-        const validationErrors = validate(values);
+        if (Object.values(errors).some(Boolean)) return;
 
-        if (Object.values(validationErrors).some(Boolean)) return;
+        console.log("sign up form data", { ...values, role, image: imagePreview });
 
-        // Connect your Better Auth registration here.
-        console.log("Sign up data:", {
-            ...values,
+        const { data, error } = await signUp.email({
+            name: values.fullName,
+            email: values.email,
+            password: values.password,
+            image: imagePreview ?? undefined,
             role,
-            image: imageFile,
         });
+
+        if (data?.token) {
+            toast.add({
+                title: "success",
+                description: "successfully sign up"
+            })
+            router.push("/")
+        }
     };
 
-    const passwordTouched =
-        submitted || Boolean(touched.password) || values.password.length > 0;
-
+    const nameError = showError("fullName");
+    const emailError = showError("email");
     const passwordError = showError("password");
+    const passwordTouched = submitted || Boolean(touched.password) || values.password.length > 0;
 
     return (
-        <div className="mx-auto w-full max-w-[460px]">
-
-            {/* Heading */}
-            <div className="mb-5">
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        <Card className="mx-auto w-full max-w-lg py-8 shadow-2xl shadow-brand/10 [--card-spacing:--spacing(6)]">
+            <CardHeader className="gap-2">
+                <CardTitle className="text-xl font-semibold sm:text-2xl">
                     Create your account
-                </h2>
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-base">
+                    Sign up as a customer to book services, or as a technician to start earning.
+                </CardDescription>
+            </CardHeader>
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Join FixMate to book reliable repair services or offer
-                    your professional skills.
-                </p>
-            </div>
-
-            <form onSubmit={handleSignUp} noValidate className="space-y-5">
-
-                {/* Full Name */}
-                <div className="space-y-2">
-                    <Label
-                        htmlFor="fullName"
-                        className="text-sm font-semibold text-slate-700"
-                    >
-                        Full Name <span className="text-red-500">*</span>
-                    </Label>
-
-                    <div className="relative">
-                        <User className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-
+            <CardContent>
+                <form onSubmit={handleSignUp} noValidate className="space-y-5">
+                    <div className="space-y-2">
+                        <Label htmlFor="fullName">Full name</Label>
                         <Input
                             id="fullName"
                             name="fullName"
                             type="text"
-                            placeholder="Enter your full name"
-                            className={cn(
-                                "h-12 rounded-xl border-slate-200 bg-white pl-10 text-sm shadow-none",
-                                "placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15",
-                            )}
+                            autoComplete="name"
+                            placeholder="John Doe"
+                            value={values.fullName}
+                            onChange={(event) => updateField("fullName", event.target.value)}
+                            onBlur={() => markTouched("fullName")}
+                            aria-invalid={Boolean(nameError) || undefined}
+                            aria-describedby={nameError ? "fullName-error" : undefined}
+                            className="h-11 rounded-xl"
                         />
+                        {nameError && (
+                            <p id="fullName-error" role="alert" className="text-sm text-destructive">
+                                {nameError}
+                            </p>
+                        )}
                     </div>
-                </div>
 
-                {/* Email */}
-                <div className="space-y-2">
-                    <Label
-                        htmlFor="email"
-                        className="text-sm font-semibold text-slate-700"
-                    >
-                        Email Address <span className="text-red-500">*</span>
-                    </Label>
-
-                    <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email address</Label>
                         <Input
                             id="email"
                             name="email"
                             type="email"
+                            autoComplete="email"
                             placeholder="you@example.com"
-                            className={cn(
-                                "h-12 rounded-xl border-slate-200 bg-white pl-10 text-sm shadow-none",
-                                "placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15",
-                            )}
+                            value={values.email}
+                            onChange={(event) => updateField("email", event.target.value)}
+                            onBlur={() => markTouched("email")}
+                            aria-invalid={Boolean(emailError) || undefined}
+                            aria-describedby={emailError ? "email-error" : undefined}
+                            className="h-11 rounded-xl"
                         />
-                    </div>
-                </div>
-
-                {/* Password */}
-                <div className="space-y-2">
-                    <Label
-                        htmlFor="password"
-                        className="text-sm font-semibold text-slate-700"
-                    >
-                        Password <span className="text-red-500">*</span>
-                    </Label>
-
-                    <div className="relative">
-                        <LockKeyhole className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-
-                        <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            autoComplete="new-password"
-                            placeholder="Create a strong password"
-                            aria-invalid={Boolean(passwordError)}
-                            aria-describedby="password-rules"
-                            className={cn(
-                                "h-12 rounded-xl border-slate-200 bg-white pl-10 pr-12 text-sm shadow-none",
-                                "placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15",
-                            )}
-                        />
-
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-blue-600"
-                        >
-                            {showPassword ? (
-                                <EyeOff className="size-4" />
-                            ) : (
-                                <Eye className="size-4" />
-                            )}
-                        </button>
+                        {emailError && (
+                            <p id="email-error" role="alert" className="text-sm text-destructive">
+                                {emailError}
+                            </p>
+                        )}
                     </div>
 
-                    {/* Password Rules */}
-                    <div
-                        id="password-rules"
-                        className="rounded-xl border border-slate-100 bg-slate-50/80 p-3"
-                    >
-                        <p className="mb-2 text-xs font-semibold text-slate-600">
-                            Password must contain:
-                        </p>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                autoComplete="new-password"
+                                placeholder="Create a password"
+                                value={values.password}
+                                onChange={(event) => updateField("password", event.target.value)}
+                                onBlur={() => markTouched("password")}
+                                aria-invalid={Boolean(passwordError) || undefined}
+                                aria-describedby={
+                                    passwordError ? "password-error" : "password-rules"
+                                }
+                                className="h-11 rounded-xl pr-11"
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => setShowPassword((visible) => !visible)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                className="absolute inset-y-0 right-1 my-auto size-8 text-muted-foreground hover:text-foreground"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="size-4" aria-hidden="true" />
+                                ) : (
+                                    <Eye className="size-4" aria-hidden="true" />
+                                )}
+                            </Button>
+                        </div>
 
-                        <div className="grid gap-2 sm:grid-cols-2">
+                        <ul id="password-rules" className="grid gap-1.5 pt-1">
                             {PASSWORD_RULES.map((rule) => {
                                 const satisfied = rule.test(values.password);
 
                                 return (
-                                    <div
+                                    <li
                                         key={rule.id}
                                         className={cn(
-                                            "flex items-center gap-2 text-xs transition-colors",
-                                            passwordTouched && satisfied
-                                                ? "text-emerald-600"
-                                                : passwordTouched
-                                                    ? "text-slate-500"
-                                                    : "text-slate-500",
+                                            "flex items-center gap-1.5 text-xs",
+                                            !passwordTouched
+                                                ? "text-muted-foreground"
+                                                : satisfied
+                                                    ? "text-emerald-600"
+                                                    : "text-destructive",
                                         )}
                                     >
                                         <span
                                             className={cn(
-                                                "flex size-4 shrink-0 items-center justify-center rounded-full",
+                                                "grid size-4 shrink-0 place-items-center rounded-full",
                                                 passwordTouched && satisfied
-                                                    ? "bg-emerald-100 text-emerald-600"
-                                                    : "bg-slate-200 text-slate-400",
+                                                    ? "bg-emerald-600/10"
+                                                    : passwordTouched
+                                                        ? "bg-destructive/10"
+                                                        : "bg-muted",
                                             )}
+                                            aria-hidden="true"
                                         >
                                             {passwordTouched && satisfied ? (
                                                 <Check className="size-3" />
-                                            ) : (
+                                            ) : passwordTouched ? (
                                                 <X className="size-3" />
+                                            ) : (
+                                                <span className="size-1.5 rounded-full bg-muted-foreground/60" />
                                             )}
                                         </span>
-
                                         {rule.label}
-                                    </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+
+                        {passwordError && (
+                            <p
+                                id="password-error"
+                                role="alert"
+                                className="text-sm text-destructive"
+                            >
+                                {passwordError}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <span id="role-label" className="text-sm leading-none font-medium">
+                            I am signing up as
+                        </span>
+                        <div
+                            role="radiogroup"
+                            aria-labelledby="role-label"
+                            className="grid gap-3 sm:grid-cols-2"
+                        >
+                            {ROLES.map((option) => {
+                                const selected = role === option.value;
+                                const Icon = option.icon;
+
+                                return (
+                                    <label
+                                        key={option.value}
+                                        className={cn(
+                                            "flex cursor-pointer flex-col gap-2 rounded-xl border p-4 transition-all",
+                                            "hover:border-brand/40 hover:bg-brand/5",
+                                            "has-[:focus-visible]:border-ring has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/50",
+                                            selected &&
+                                            "border-brand bg-brand/5 ring-2 ring-brand/25",
+                                        )}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="role"
+                                            value={option.value}
+                                            checked={selected}
+                                            onChange={() => setRole(option.value)}
+                                            className="sr-only"
+                                        />
+                                        <span className="flex items-center justify-between">
+                                            <span
+                                                className={cn(
+                                                    "grid size-9 place-items-center rounded-full transition-colors",
+                                                    selected
+                                                        ? "bg-brand text-brand-foreground"
+                                                        : "bg-muted text-muted-foreground",
+                                                )}
+                                            >
+                                                <Icon className="size-4" aria-hidden="true" />
+                                            </span>
+                                            <span
+                                                aria-hidden="true"
+                                                className={cn(
+                                                    "grid size-4 place-items-center rounded-full border-2 transition-colors",
+                                                    selected ? "border-brand" : "border-border",
+                                                )}
+                                            >
+                                                {selected && (
+                                                    <span className="size-2 rounded-full bg-brand" />
+                                                )}
+                                            </span>
+                                        </span>
+                                        <span className="text-sm font-semibold">
+                                            {option.title}
+                                        </span>
+                                        <span className="text-xs leading-relaxed text-muted-foreground">
+                                            {option.description}
+                                        </span>
+                                    </label>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {passwordError && (
-                        <p role="alert" className="text-xs text-red-500">
-                            {passwordError}
-                        </p>
-                    )}
-                </div>
-
-                {/* Account Type */}
-                <div className="space-y-3">
-                    <div>
-                        <Label className="text-sm font-semibold text-slate-700">
-                            Choose Account Type
-                        </Label>
-                        <p className="mt-1 text-xs text-slate-500">
-                            How would you like to use FixMate?
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        {ROLES.map((option) => {
-                            const selected = role === option.value;
-                            const Icon = option.icon;
-
-                            return (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    role="radio"
-                                    aria-checked={selected}
-                                    onClick={() => setRole(option.value)}
-                                    className={cn(
-                                        "relative flex min-h-[116px] flex-col items-start rounded-xl border p-3.5 text-left transition-all duration-200",
-                                        "hover:border-blue-300 hover:bg-blue-50/50",
-                                        selected
-                                            ? "border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/15"
-                                            : "border-slate-200 bg-white",
-                                    )}
-                                >
-                                    <div className="flex w-full items-center justify-between">
-                                        <span
-                                            className={cn(
-                                                "flex size-9 items-center justify-center rounded-lg",
-                                                selected
-                                                    ? "bg-blue-600 text-white"
-                                                    : "bg-slate-100 text-slate-500",
-                                            )}
-                                        >
-                                            <Icon className="size-4" />
-                                        </span>
-
-                                        <span
-                                            className={cn(
-                                                "flex size-4 items-center justify-center rounded-full border",
-                                                selected
-                                                    ? "border-blue-600 bg-blue-600 text-white"
-                                                    : "border-slate-300",
-                                            )}
-                                        >
-                                            {selected && <Check className="size-3" />}
-                                        </span>
-                                    </div>
-
-                                    <span className="mt-3 text-sm font-bold text-slate-800">
-                                        {option.title}
-                                    </span>
-
-                                    <span className="mt-1 text-[11px] leading-4 text-slate-500">
-                                        {option.description}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Profile Photo */}
-                <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-slate-700">
-                        Profile Photo{" "}
-                        <span className="font-normal text-slate-400">(Optional)</span>
-                    </Label>
-
-                    <div className="flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-3.5 transition hover:border-blue-400">
-                        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-50 text-blue-600">
-                            {imagePreview ? (
-                                <img
-                                    src={imagePreview}
-                                    alt="Profile preview"
-                                    className="size-full object-cover"
-                                />
-                            ) : (
-                                <Camera className="size-6" />
-                            )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                            <label
-                                htmlFor="image"
-                                className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
-                            >
-                                <Upload className="size-4" />
-                                {imageFile ? "Change photo" : "Upload a photo"}
-                            </label>
-
+                    <div className="space-y-2">
+                        <Label htmlFor="image">Profile photo</Label>
+                        <div className="flex items-center gap-4">
+                            <span className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-dashed border-border bg-muted text-muted-foreground">
+                                {imagePreview ? (
+                                    // eslint-disable-next-line @next/next/no-img-element -- blob preview URL
+                                    <img
+                                        src={imagePreview}
+                                        alt="Selected profile photo preview"
+                                        className="size-full object-cover"
+                                    />
+                                ) : (
+                                    <Camera className="size-5" aria-hidden="true" />
+                                )}
+                            </span>
                             <Input
                                 id="image"
                                 name="image"
                                 type="file"
                                 accept="image/png,image/jpeg,image/webp"
                                 onChange={handleImageChange}
-                                className="sr-only"
+                                className="h-11 rounded-xl"
                             />
-
-                            <p className="mt-1 truncate text-xs text-slate-500">
-                                {imageFile
-                                    ? imageFile.name
-                                    : "JPG, PNG or WebP. You can add it later."}
-                            </p>
                         </div>
-
-                        {imagePreview && (
-                            <button
-                                type="button"
-                                onClick={removeImage}
-                                aria-label="Remove profile photo"
-                                className="flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-50 hover:text-red-500"
-                            >
-                                <X className="size-4" />
-                            </button>
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                            JPG, PNG or WebP — optional, you can add it later from your profile.
+                        </p>
                     </div>
-                </div>
 
-                {/* Submit Button */}
-                <Button
-                    type="submit"
-                    className="h-12 w-full rounded-xl bg-blue-600 text-sm font-bold text-white shadow-lg shadow-blue-600/15 transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-blue-600/25"
-                >
-                    Create My Account
-                    <ArrowRight className="ml-2 size-4" />
-                </Button>
-
-                {/* Security Information */}
-                <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-                    <ShieldCheck className="size-4 text-emerald-500" />
-                    Your information is protected and secure.
-                </div>
-            </form>
-
-            {/* Sign In Link */}
-            <div className=" border-t border-slate-100 pt-5 text-center">
-                <p className="text-sm text-slate-500">
-                    Already have an account?{" "}
-                    <Link
-                        href="/sign-in"
-                        className="font-bold text-blue-600 transition hover:text-blue-700 hover:underline"
+                    <Button
+                        type="submit"
+                        className="h-12 w-full rounded-xl bg-brand text-base text-brand-foreground hover:bg-brand/90"
                     >
-                        Sign In
-                    </Link>
-                </p>
-            </div>
-        </div>
+                        Create account
+                    </Button>
+                </form>
+            </CardContent>
+
+            <CardFooter className="justify-center rounded-b-xl text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                    href="/sign-in"
+                    className="font-medium text-brand transition-colors hover:text-brand/80 underline-offset-4 hover:underline"
+                >
+                    Sign in
+                </Link>
+            </CardFooter>
+        </Card>
     );
 };
 

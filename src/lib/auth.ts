@@ -2,8 +2,8 @@ import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
 
-const client = new MongoClient("mongodb://localhost:27017/database");
-const db = client.db();
+const client = new MongoClient(`${process.env.BETTER_AUTH_MONGO_DB_URL}`);
+const db = client.db("fixmate");
 
 export const auth = betterAuth({
     emailAndPassword: {
@@ -13,28 +13,9 @@ export const auth = betterAuth({
         additionalFields: {
             role: {
                 type: ["admin", "technician", "customer"],
-                input: false,
+                input: true,
                 defaultValue: "customer",
-                // NOTE: input:false strips the role sent from the sign-up form, so a
-                // "technician" selection can never be saved. Switch to input:true once
-                // server-side validation (only "customer" | "technician" accepted,
-                // anything else coerced to "customer") is in place.
-            },
-            phone: {
-                type: "string",
-                required: false,
-                defaultValue: "",
-            },
-            area: {
-                type: "string",
-                required: false,
-                defaultValue: "",
-            },
-            bio: {
-                type: "string",
-                required: false,
-                defaultValue: "",
-            },
+            }
         },
     },
     socialProviders: {
