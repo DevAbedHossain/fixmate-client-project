@@ -16,6 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth-client";
+import { toast } from "../ui/toast";
+import { SocialProvider } from "better-auth";
 
 
 type IconProps = { className?: string };
@@ -64,12 +66,26 @@ const SignInForm = () => {
     const { data, error } = await signIn.email({
       email: userInfo.email,
       password: userInfo.password,
+      callbackURL: "/"
     })
-    console.log("afer submit data", data, error);
 
-    const res = await data.json();
-    console.log("form submit data", res)
+    if (data?.token) {
+      toast.add({
+        title: "success",
+        description: "Successfully login!"
+      })
+    }
+  };
 
+  const handleSocialLogin = async (socialName: SocialProvider) => {
+    const { data, error } = await signIn.social({
+      provider: socialName,
+      callbackURL: "/",
+    });
+
+    if (error) {
+      console.error("Social login failed:", error.message);
+    }
   };
 
   return (
@@ -89,6 +105,7 @@ const SignInForm = () => {
           <Button
             type="button"
             variant="outline"
+            onClick={() => handleSocialLogin("google")}
             className="h-11 w-full gap-2 rounded-xl"
           >
             <GoogleIcon className="size-4" />
@@ -97,6 +114,7 @@ const SignInForm = () => {
           <Button
             type="button"
             variant="outline"
+            onClick={() => handleSocialLogin("github")}
             className="h-11 w-full gap-2 rounded-xl"
           >
             <GitHubIcon className="size-4" />
