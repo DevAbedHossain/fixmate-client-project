@@ -3,10 +3,23 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Wrench, X } from "lucide-react";
-
+import { Menu, User2, Wrench, X } from "lucide-react";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { signOut, useSession } from "@/lib/auth-client";
+import {
+  BadgeCheckIcon,
+  BellIcon,
+  CreditCardIcon,
+  LogOutIcon,
+} from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -33,6 +46,8 @@ const signUpLinkClass = cn(
 const Navbar = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session } = useSession();
+  const user = session?.user;
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -88,12 +103,43 @@ const Navbar = () => {
         </nav>
 
         <div className="hidden items-center justify-end gap-3 md:flex">
-          <Link href="/sign-in" className={authLinkClass}>
-            Sign In
-          </Link>
-          <Link href="/sign-up" className={signUpLinkClass}>
-            Sign Up
-          </Link>
+          {
+            user ? <>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button className="border-none border-transparent" variant="outline">
+                  <Avatar>
+                    <AvatarImage src={user.image as string} alt={user.name} />
+                    <AvatarBadge className="bg-green-600 dark:bg-green-800" />
+                  </Avatar>
+                  {user.name}
+                </Button>} />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuGroup>
+                    <Link href={`/dashboard/${user.role}`}>
+                      <DropdownMenuItem className="cursor-pointer">
+                        <User2 />
+                        {user.name}
+                      </DropdownMenuItem>
+                    </Link>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                    <LogOutIcon />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+            </> : <>
+              <Link href="/sign-in" className={authLinkClass}>
+                Sign In
+              </Link>
+              <Link href="/sign-up" className={signUpLinkClass}>
+                Sign Up
+              </Link>
+            </>
+          }
+
         </div>
 
         <Button
@@ -143,20 +189,51 @@ const Navbar = () => {
             })}
 
             <div className="mt-3 grid grid-cols-2 gap-3 border-t border-border/60 pt-4">
-              <Link
-                href="/sign-in"
-                onClick={closeMenu}
-                className={authLinkClass}
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/sign-up"
-                onClick={closeMenu}
-                className={signUpLinkClass}
-              >
-                Sign Up
-              </Link>
+              {
+                user ? <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger render={<Button className="border-none border-transparent" variant="outline">
+                      <Avatar>
+                        <AvatarImage src={user.image as string} alt={user.name} />
+                        <AvatarBadge className="bg-green-600 dark:bg-green-800" />
+                      </Avatar>
+                      {user.name}
+                    </Button>} />
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuGroup>
+                        <Link href={`/dashboard/${user.role}`} onClick={closeMenu}>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <User2 />
+                            {user.name}
+                          </DropdownMenuItem>
+                        </Link>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                        <LogOutIcon />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                </> : <>
+                  <Link
+                    href="/sign-in"
+                    onClick={closeMenu}
+                    className={authLinkClass}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    onClick={closeMenu}
+                    className={signUpLinkClass}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              }
+
             </div>
           </nav>
         </div>
