@@ -43,3 +43,25 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] **Verified** with `npx tsc --noEmit`, `npm run lint`, and `npm run build` — all pass.
 - [ ] **Follow-up** — create the `/services` route (the search form and navbar link point there; it currently 404s).
 
+### Our Working Process section (FixMate)
+
+- [x] **Cloned the “Our Working Process” design** into `src/components/homepage/OurWorkingProcess.tsx` (rendered on the homepage via `src/app/page.tsx`).
+- [x] **Adapted the copy to FixMate** (per user choice) — “Professional Cleaning” → “Professional Repair”, “cleaning service” → “repair service”; titles/description structure kept identical to the design.
+- [x] **Header** — centered `h2` (bold, tight tracking) + muted two-line subtitle constrained to `max-w-2xl`.
+- [x] **Four step cards** in a responsive grid (`1 / 2 / 4` columns), each an `<li>` with a colored lucide icon (ClipboardCheck, Calculator, Wrench, PackageSearch), bold title, muted description, and a bottom-aligned “Read More ↗” `next/link` to `/services`.
+  - Light border by default; on hover the border and the “Read More” link turn brand blue (the design’s highlighted third card is reproduced as a hover state, per user choice).
+  - Title sized `text-xl` so every title stays on one line at 4-column widths, keeping icons/titles/descriptions/links aligned across cards (a `sm:text-2xl` bump made “Get a Free Estimate” wrap and broke alignment).
+- [x] **Decorations** (`aria-hidden`, `-z-10`, clipped by `overflow-hidden`) — faint line-art hammer/hand/sparkles at the edges, a rose wrench accent top-right, and a small squiggle at the bottom, echoing the design’s illustrations.
+  - The rose wrench is `hidden lg:block` — at mobile widths it collided with the heading text.
+  - Note: lucide-react has no `Pliers` icon; `Wrench` is used as the stand-in for the design’s pliers.
+- [x] **Verified** with headless Chrome screenshots at 1440px and 500px widths (your dev server on port 3000 was already serving the page), plus `npx tsc --noEmit`, `npm run lint`, and `npm run build` — all pass.
+
+### How It Works section (FixMate)
+
+- [x] **Cloned the “How FixMate Works” design** into `src/components/homepage/HowItWorks.tsx` (already wired up in `src/app/page.tsx`, rendered after `OurWorkingProcess`).
+- [x] **Content per user spec** — badge “How FixMate Works”, heading “Get Your Repair Done in 4 Easy Steps” (from the design), and the 4 steps: Find a Service → Send a Request → **Technician Fixes It** (user’s wording, design said “Get It Fixed”) → Pay After Completion, with the design’s descriptions.
+- [x] **Layout** — light-blue gradient section; centered pill badge + bold heading; ordered list (`<ol>`) of 4 white cards in a row on `md+`, stacked on mobile.
+  - Each card: brand-blue number circle straddling the top edge, blue lucide icon (Search, ClipboardList, Wrench, CreditCard), bold title, muted description, soft shadow, subtle lift on hover.
+  - Blue `ArrowRight` connectors between cards — horizontal on `md+`, rotated 90° (pointing down) on mobile to show the flow.
+- [x] **Verified** with headless Chrome screenshots at 1440px and 500px widths against the dev server on port 3000, plus `npx tsc --noEmit`, `npm run lint`, and `npm run build` — all pass.
+
