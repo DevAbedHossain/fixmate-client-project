@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Wrench } from "lucide-react";
 
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signIn } from "@/lib/auth-client";
+
 
 type IconProps = { className?: string };
 
@@ -53,16 +55,26 @@ const SignInForm = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   // UI-only for now: prevent the native submit until sign-in is wired to better-auth.
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const userInfo = Object.fromEntries(formData.entries()) as { email: string, password: string };
+    console.log("user info", userInfo);
+
+    const { data, error } = await signIn.email({
+      email: userInfo.email,
+      password: userInfo.password,
+    })
+    console.log("afer submit data", data, error);
+
+    const res = await data.json();
+    console.log("form submit data", res)
+
   };
 
   return (
     <Card className="mx-auto w-full max-w-md py-8 shadow-2xl shadow-brand/10 [--card-spacing:--spacing(6)]">
       <CardHeader className="gap-2">
-        <span className="mb-1 inline-flex size-11 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm">
-          <Wrench className="size-5" strokeWidth={2.5} aria-hidden="true" />
-        </span>
         <CardTitle className="text-xl font-semibold sm:text-2xl">
           Welcome back
         </CardTitle>
@@ -104,7 +116,7 @@ const SignInForm = () => {
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSignIn} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Email address</Label>
             <Input
