@@ -5,11 +5,14 @@ import FinalCTA from "@/components/aboutpage/FinalCTA";
 import MissionBission from "@/components/aboutpage/MissionBission";
 import WhyChoosUs from "@/components/homepage/WhyChoosUs";
 import OurValues from "@/components/aboutpage/OurValues";
+import Navbar from "@/components/shared/Navbar";
+import Footer from "@/components/shared/Footer";
 
 
 const AboutPage = () => {
     return (
         <main className="overflow-hidden bg-white">
+            <Navbar />
             <HeroSection />
             <OurStory />
             <WhyChoosUs />
@@ -17,6 +20,7 @@ const AboutPage = () => {
             <OurValues />
             <HowItWorks />
             <FinalCTA />
+            <Footer />
         </main>
     );
 };
