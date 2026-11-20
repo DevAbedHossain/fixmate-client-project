@@ -1,0 +1,105 @@
+"use client"
+
+import type { LucideIcon } from "lucide-react"
+import { usePathname } from "next/navigation"
+import {
+    Bookmark,
+    Briefcase,
+    Building2,
+    CreditCard,
+    FileText,
+    Home,
+    LayoutDashboard,
+    PlusCircle,
+    Settings,
+    Users,
+} from "lucide-react"
+
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from "@/components/ui/sidebar"
+import { useSession } from "@/lib/auth-client"
+import Link from "next/link";
+import { IRole } from "@/types/UserType";
+
+export type MenuItem = {
+    id: string
+    name: string
+    url: string
+    icon: LucideIcon
+}
+
+const menuItemsByRole: Record<IRole, MenuItem[]> = {
+    customer: [
+        { id: "home", name: "Home", url: "/", icon: Home },
+        { id: "dashboard", name: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+        { id: "jobs", name: "Jobs", url: "/dashboard/seeker/jobs", icon: Briefcase },
+        { id: "saved-jobs", name: "Saved Jobs", url: "/dashboard/seeker/saved-jobs", icon: Bookmark },
+        { id: "applications", name: "Applications", url: "/dashboard/seeker/applications", icon: FileText },
+        { id: "billing", name: "Billing", url: "/dashboard/seeker/billing", icon: CreditCard },
+        { id: "settings", name: "Settings", url: "/dashboard/seeker/settings", icon: Settings },
+    ],
+    technician: [
+        { id: "home", name: "Home", url: "/", icon: Home },
+        { id: "dashboard", name: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+        { id: "my-company", name: "My Company", url: "/dashboard/recruiter/my-company", icon: Building2 },
+        { id: "manage-jobs", name: "Manage Jobs", url: "/dashboard/recruiter/jobs", icon: Briefcase },
+        { id: "add-jobs", name: "Add Jobs", url: "/dashboard/recruiter/jobs/new", icon: PlusCircle },
+        { id: "applications", name: "Applications", url: "/dashboard/recruiter/applications", icon: FileText },
+        { id: "settings", name: "Settings", url: "/dashboard/settings", icon: Settings },
+    ],
+    admin: [
+        { id: "home", name: "Home", url: "/", icon: Home },
+        { id: "dashboard", name: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+        { id: "users", name: "Users", url: "/dashboard/admin/users", icon: Users },
+        { id: "companies", name: "Companies", url: "/dashboard/admin/companies", icon: Building2 },
+        { id: "jobs", name: "Jobs", url: "/dashboard/admin/jobs", icon: Briefcase },
+        { id: "payments", name: "Payments", url: "/dashboard/admin/payments", icon: CreditCard },
+        { id: "settings", name: "Settings", url: "/dashboard/admin/settings", icon: Settings },
+    ],
+}
+
+export function DashboardSidebar() {
+    const { data: session } = useSession()
+    const pathname = usePathname()
+    const role: IRole = (session?.user?.role as IRole) || "customer"
+
+    return (
+        <Sidebar>
+            <SidebarHeader>
+                <div className="mx-2 flex flex-col gap-0.5 rounded-lg bg-[#101010] p-3">
+                    <span className="truncate text-sm font-semibold text-white">
+                        {session?.user?.name || "Guest User"}
+                    </span>
+                    <span className="text-xs capitalize text-[#a1a4aa]">{role}</span>
+                </div>
+            </SidebarHeader>
+            <SidebarContent>
+                <SidebarGroup />
+                <SidebarMenu>
+                    {menuItemsByRole[role].map((item) => (
+                        <SidebarMenuItem key={item.id}>
+                            <SidebarMenuButton
+                                isActive={pathname === item.url}
+                                render={<Link href={item.url} />}
+                                className="data-active:before:absolute data-active:before:left-0 data-active:before:top-1/2 data-active:before:h-4 data-active:before:w-0.5 data-active:before:-translate-y-1/2 data-active:before:rounded-full data-active:before:bg-[#5c53fe]"
+                            >
+                                <item.icon />
+                                <span>{item.name}</span>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+                <SidebarGroup />
+            </SidebarContent>
+            <SidebarFooter />
+        </Sidebar>
+    )
+}
