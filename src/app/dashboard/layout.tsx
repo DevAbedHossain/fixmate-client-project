@@ -1,16 +1,19 @@
 
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import React from 'react';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <SidebarProvider>
             <DashboardSidebar />
-            <main>
-                <SidebarTrigger />
-                {children}
-            </main>
+            <SidebarInset>
+                <DashboardHeader />
+                <div className="flex-1 p-4 sm:p-6">
+                    {children}
+                </div>
+            </SidebarInset>
         </SidebarProvider >
     );
 };

@@ -12,6 +12,7 @@ import {
     LayoutDashboard,
     PlusCircle,
     Settings,
+    User2,
     Users,
 } from "lucide-react"
 
@@ -28,6 +29,7 @@ import {
 import { useSession } from "@/lib/auth-client"
 import Link from "next/link";
 import { IRole } from "@/types/UserType";
+import { Avatar, AvatarBadge, AvatarImage } from "../ui/avatar";
 
 export type MenuItem = {
     id: string
@@ -39,25 +41,24 @@ export type MenuItem = {
 const menuItemsByRole: Record<IRole, MenuItem[]> = {
     customer: [
         { id: "home", name: "Home", url: "/", icon: Home },
-        { id: "dashboard", name: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-        { id: "jobs", name: "Jobs", url: "/dashboard/seeker/jobs", icon: Briefcase },
-        { id: "saved-jobs", name: "Saved Jobs", url: "/dashboard/seeker/saved-jobs", icon: Bookmark },
-        { id: "applications", name: "Applications", url: "/dashboard/seeker/applications", icon: FileText },
-        { id: "billing", name: "Billing", url: "/dashboard/seeker/billing", icon: CreditCard },
-        { id: "settings", name: "Settings", url: "/dashboard/seeker/settings", icon: Settings },
+        { id: "dashboard", name: "Dashboard", url: "/dashboard/customer", icon: LayoutDashboard },
+        { id: "jobs", name: "Jobs", url: "/dashboard/customer/jobs", icon: Briefcase },
+        { id: "saved-jobs", name: "Saved Jobs", url: "/dashboard/customer/saved-jobs", icon: Bookmark },
+        { id: "applications", name: "Applications", url: "/dashboard/customer/applications", icon: FileText },
+        { id: "billing", name: "Billing", url: "/dashboard/customer/billing", icon: CreditCard },
+        { id: "settings", name: "Settings", url: "/dashboard/customer/settings", icon: Settings },
     ],
     technician: [
         { id: "home", name: "Home", url: "/", icon: Home },
-        { id: "dashboard", name: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-        { id: "my-company", name: "My Company", url: "/dashboard/recruiter/my-company", icon: Building2 },
-        { id: "manage-jobs", name: "Manage Jobs", url: "/dashboard/recruiter/jobs", icon: Briefcase },
-        { id: "add-jobs", name: "Add Jobs", url: "/dashboard/recruiter/jobs/new", icon: PlusCircle },
-        { id: "applications", name: "Applications", url: "/dashboard/recruiter/applications", icon: FileText },
-        { id: "settings", name: "Settings", url: "/dashboard/settings", icon: Settings },
+        { id: "dashboard", name: "Dashboard", url: "/dashboard/technician", icon: LayoutDashboard },
+        { id: "my-company", name: "My Company", url: "/dashboard/technician/my-company", icon: Building2 },
+        { id: "manage-jobs", name: "Manage Jobs", url: "/dashboard/technician/jobs", icon: Briefcase },
+        { id: "add-jobs", name: "Add Jobs", url: "/dashboard/technician/jobs/new", icon: PlusCircle },
+        { id: "applications", name: "Applications", url: "/dashboard/technician/settings", icon: Settings },
     ],
     admin: [
         { id: "home", name: "Home", url: "/", icon: Home },
-        { id: "dashboard", name: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+        { id: "dashboard", name: "Dashboard", url: "/dashboard/admin", icon: LayoutDashboard },
         { id: "users", name: "Users", url: "/dashboard/admin/users", icon: Users },
         { id: "companies", name: "Companies", url: "/dashboard/admin/companies", icon: Building2 },
         { id: "jobs", name: "Jobs", url: "/dashboard/admin/jobs", icon: Briefcase },
@@ -99,7 +100,19 @@ export function DashboardSidebar() {
                 </SidebarMenu>
                 <SidebarGroup />
             </SidebarContent>
-            <SidebarFooter />
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton>
+                            <Avatar>
+                                <AvatarImage src={session?.user.image as string} alt={session?.user.name} />
+                                <AvatarBadge className="bg-green-600 dark:bg-green-800" />
+                            </Avatar>
+                            {session?.user.name}
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
     )
 }
