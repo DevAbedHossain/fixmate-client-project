@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import {
+    BookAIcon,
     Bookmark,
     Briefcase,
     Building2,
@@ -12,8 +13,8 @@ import {
     LayoutDashboard,
     PlusCircle,
     Settings,
-    User2,
     Users,
+    Wrench,
 } from "lucide-react"
 
 import {
@@ -42,28 +43,26 @@ const menuItemsByRole: Record<IRole, MenuItem[]> = {
     customer: [
         { id: "home", name: "Home", url: "/", icon: Home },
         { id: "dashboard", name: "Dashboard", url: "/dashboard/customer", icon: LayoutDashboard },
-        { id: "jobs", name: "Jobs", url: "/dashboard/customer/jobs", icon: Briefcase },
-        { id: "saved-jobs", name: "Saved Jobs", url: "/dashboard/customer/saved-jobs", icon: Bookmark },
-        { id: "applications", name: "Applications", url: "/dashboard/customer/applications", icon: FileText },
-        { id: "billing", name: "Billing", url: "/dashboard/customer/billing", icon: CreditCard },
-        { id: "settings", name: "Settings", url: "/dashboard/customer/settings", icon: Settings },
+        { id: "bookings", name: "Bookings", url: "/dashboard/customer/bookings", icon: BookAIcon },
+        { id: "payments", name: "Payments", url: "/dashboard/customer/payments", icon: Bookmark },
+        { id: "profile-update", name: "Profile Update", url: "/dashboard/customer/profile-update", icon: Settings },
     ],
     technician: [
         { id: "home", name: "Home", url: "/", icon: Home },
         { id: "dashboard", name: "Dashboard", url: "/dashboard/technician", icon: LayoutDashboard },
-        { id: "my-company", name: "My Company", url: "/dashboard/technician/my-company", icon: Building2 },
-        { id: "manage-jobs", name: "Manage Jobs", url: "/dashboard/technician/jobs", icon: Briefcase },
-        { id: "add-jobs", name: "Add Jobs", url: "/dashboard/technician/jobs/new", icon: PlusCircle },
-        { id: "applications", name: "Applications", url: "/dashboard/technician/settings", icon: Settings },
+        { id: "add-service", name: "Add Service", url: "/dashboard/technician/add-service", icon: Building2 },
+        { id: "my-services", name: "My Services", url: "/dashboard/technician/my-services", icon: Briefcase },
+        { id: "manage-requests", name: "Manage Requests", url: "/dashboard/technician/manage-requests", icon: PlusCircle },
+        { id: "profile-update", name: "Profile Update", url: "/dashboard/technician/profile-update", icon: Settings },
     ],
     admin: [
         { id: "home", name: "Home", url: "/", icon: Home },
         { id: "dashboard", name: "Dashboard", url: "/dashboard/admin", icon: LayoutDashboard },
         { id: "users", name: "Users", url: "/dashboard/admin/users", icon: Users },
-        { id: "companies", name: "Companies", url: "/dashboard/admin/companies", icon: Building2 },
-        { id: "jobs", name: "Jobs", url: "/dashboard/admin/jobs", icon: Briefcase },
-        { id: "payments", name: "Payments", url: "/dashboard/admin/payments", icon: CreditCard },
-        { id: "settings", name: "Settings", url: "/dashboard/admin/settings", icon: Settings },
+        { id: "services", name: "Services", url: "/dashboard/admin/services", icon: Building2 },
+        { id: "bookings", name: "Bookings", url: "/dashboard/admin/bookings", icon: Briefcase },
+        { id: "transactions", name: "Transactions", url: "/dashboard/admin/transactions", icon: CreditCard },
+        { id: "profile-update", name: "Profile Update", url: "/dashboard/admin/profile-update", icon: Settings },
     ],
 }
 
@@ -75,11 +74,26 @@ export function DashboardSidebar() {
     return (
         <Sidebar>
             <SidebarHeader>
-                <div className="mx-2 flex flex-col gap-0.5 rounded-lg bg-[#101010] p-3">
-                    <span className="truncate text-sm font-semibold text-white">
-                        {session?.user?.name || "Guest User"}
+                <Link
+                    href="/"
+                    className="flex w-fit items-center gap-2 mb-5"
+                    aria-label="FixMate home"
+                >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground">
+                        <Wrench className="size-4" strokeWidth={2.5} aria-hidden="true" />
                     </span>
-                    <span className="text-xs capitalize text-[#a1a4aa]">{role}</span>
+                    <span className="hidden text-lg font-bold tracking-tight sm:inline">
+                        FixMate
+                    </span>
+                </Link>
+                <div className=" flex gap-1 items-center py-3">
+                    <img className="rounded-full w-10 object-cover h-10 border-2 border-[#155dfc]" src={session?.user.image as string} alt={session?.user.name as string} />
+                    <div className="mx-2 flex flex-col gap-0.5 rounded-lg py-3">
+                        <span className="truncate text-sm font-semibold ">
+                            {session?.user?.name || "Guest User"}
+                        </span>
+                        <span className="text-xs capitalize text-[#a1a4aa]">{role}</span>
+                    </div>
                 </div>
             </SidebarHeader>
             <SidebarContent>
@@ -101,6 +115,7 @@ export function DashboardSidebar() {
                 <SidebarGroup />
             </SidebarContent>
             <SidebarFooter>
+
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton>
