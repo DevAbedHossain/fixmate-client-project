@@ -25,16 +25,21 @@ export const getServices = async (): Promise<IService[]> => {
     return res.json();
 }
 
-export const getServiceById = async (id: string): Promise<IService | undefined> => {
-    const services = await getServices();
-    return services.find((service) => service._id === id);
+
+/** Returns the service, or `null` when the id is invalid or nothing matches. */
+export const getServiceById = async (id: string): Promise<IService | null> => {
+
+    const res = await fetch(`${baseURL}/service/${id}`, { cache: "no-store" });
+
+    if (!res.ok) {
+        throw new Error("Failed to load service.");
+    }
+
+    // The API sends an empty body when no service matches
+    const text = await res.text();
+    return text ? (JSON.parse(text) as IService) : null;
 }
 
-/** Services customers may see: approved by an admin and switched on by the technician. */
-export const getPublicServices = async (): Promise<IService[]> => {
-    const services = await getServices();
-    return services.filter((service) => service.isAvailable && service.approvalStatus === "approved");
-}
 
 export const updateService = async (id: string, data: Partial<IService>) => {
     const res = await fetch(`${baseURL}/service/${id}`, {
@@ -96,6 +101,17 @@ export const updateBooking = async (id: string, data: Partial<IBooking>) => {
 
     if (!res.ok) {
         throw new Error("Failed to update booking.");
+    }
+
+    return res.json();
+}
+
+/** A few public services for the home page (approved + available only). */
+export const limitServices = async () => {
+    const res = await fetch(`${baseURL}/service-limit`, { cache: "no-store" });
+
+    if (!res.ok) {
+        throw new Error("Failed to load services.");
     }
 
     return res.json();
