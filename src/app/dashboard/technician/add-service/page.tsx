@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -9,12 +8,9 @@ import {
     MapPin,
     Plus,
     ShieldCheck,
-    UploadCloud,
     Wrench,
 } from "lucide-react";
-
 import Link from "next/link";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,9 +30,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import React, { useState } from "react";
+import { createService } from "@/lib/api/GetAPI";
+import { toast } from "@/components/ui/toast";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
 
 const categories = [
     "Smartphone",
@@ -46,13 +45,16 @@ const categories = [
     "TV",
     "Washing Machine",
     "Electrical",
-];
+] as const;
 
 const serviceModes = ["Home Visit", "Shop Drop-off"];
 
 export default function AddServicePage() {
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const router = useRouter();
+    const { data: session } = useSession();
+    const user = session?.user;
 
     const handleImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -69,25 +71,40 @@ export default function AddServicePage() {
         })
         const result = await res.json();
         const imageURL = result.data.url;
-        console.log("image url", imageURL)
 
         setImagePreview(imageURL)
     }
 
-    const handleAddService = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleAddService = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
-        const newService = Object.fromEntries(formData.entries());
-
-        console.log("form data", newService)
 
         const serviceData = {
-            ...newService,
-            image: imagePreview, // Add uploaded ImgBB URL
+            title: String(formData.get("title") ?? ""),
+            category: String(formData.get("category") ?? ""),
+            serviceArea: String(formData.get("serviceArea") ?? ""),
+            description: String(formData.get("description") ?? ""),
+            basePrice: Number(formData.get("basePrice") ?? 0),
+            estimatedDuration: Number(formData.get("estimatedDuration") ?? 0),
+            serviceMode: String(formData.get("serviceMode") ?? ""),
+            image: imagePreview,
+            isAvailable: true,
+            approvalStatus: "pending",
+            technicianEmail: user?.email,
+            technicianName: user?.name,
+            technicianId: user?.id,
         };
 
-        console.log("service data", serviceData);
+        const result = await createService(serviceData);
+
+        if (result.insertedId) {
+            toast.add({
+                title: "success",
+                description: "Successfully added new service."
+            })
+            router.push("/dashboard/technician/my-services")
+        }
     }
 
     return (
