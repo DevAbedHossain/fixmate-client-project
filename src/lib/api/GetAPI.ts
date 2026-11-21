@@ -1,3 +1,4 @@
+import { IBooking } from "@/types/Booking";
 import { IService } from "@/types/Service";
 import { IUser } from "@/types/UserType";
 
@@ -14,19 +15,52 @@ export const createService = async (data: IService) => {
     return res.json()
 }
 
-export const getServices = async () => {
-    const res = await fetch(`${baseURL}/services`);
+export const getServices = async (): Promise<IService[]> => {
+    const res = await fetch(`${baseURL}/services`, { cache: "no-store" });
+
+    if (!res.ok) {
+        throw new Error("Failed to load services.");
+    }
+
     return res.json();
 }
 
-export const updateService = async (data: boolean) => {
-    const res = await fetch(`${baseURL}/service`, {
+export const getServiceById = async (id: string): Promise<IService | undefined> => {
+    const services = await getServices();
+    return services.find((service) => service._id === id);
+}
+
+/** Services customers may see: approved by an admin and switched on by the technician. */
+export const getPublicServices = async (): Promise<IService[]> => {
+    const services = await getServices();
+    return services.filter((service) => service.isAvailable && service.approvalStatus === "approved");
+}
+
+export const updateService = async (id: string, data: Partial<IService>) => {
+    const res = await fetch(`${baseURL}/service/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
     })
+
+    if (!res.ok) {
+        throw new Error("Failed to update service.");
+    }
+
+    return res.json();
+}
+
+export const deleteService = async (id: string) => {
+    const res = await fetch(`${baseURL}/service/${id}`, {
+        method: "DELETE",
+    })
+
+    if (!res.ok) {
+        throw new Error("Failed to delete service.");
+    }
+
     return res.json();
 }
 
@@ -38,5 +72,31 @@ export const updateUser = async (data: IUser) => {
         },
         body: JSON.stringify(data),
     })
+    return res.json();
+}
+
+export const getBookings = async (): Promise<IBooking[]> => {
+    const res = await fetch(`${baseURL}/bookings`, { cache: "no-store" });
+
+    if (!res.ok) {
+        throw new Error("Failed to load bookings.");
+    }
+
+    return res.json();
+}
+
+export const updateBooking = async (id: string, data: Partial<IBooking>) => {
+    const res = await fetch(`${baseURL}/booking/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+    })
+
+    if (!res.ok) {
+        throw new Error("Failed to update booking.");
+    }
+
     return res.json();
 }

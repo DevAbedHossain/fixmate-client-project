@@ -24,12 +24,14 @@ import { toast } from "../ui/toast";
 import React, { useRef, useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import { updateUser } from "@/lib/api/GetAPI";
+import { useRouter } from "next/navigation";
 
 
 export default function ProfileUpdate() {
 
     const { data: session } = useSession();
     const user = session?.user;
+    const router = useRouter();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,7 +89,14 @@ export default function ProfileUpdate() {
         }
 
         const result = await updateUser(updateData);
-        console.log("update result", result);
+        if (result.modifiedCount > 0) {
+            toast.add({
+                title: "Profile updated successfully",
+                description: "Your profile has been updated successfully.",
+            });
+
+            router.push("/dashboard/technician")
+        }
     }
 
     return (

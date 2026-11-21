@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   reactCompiler: true,
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "i.ibb.co" }],
+  },
   devIndicators: false,
   turbopack: {
     rules: {
