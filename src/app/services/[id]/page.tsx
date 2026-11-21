@@ -91,12 +91,12 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                 </p>
 
                                 <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                                    
-                                            <div className="min-w-0">
-                                                <p className="text-xs font-medium text-muted-foreground">Category</p>
+
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-muted-foreground">Category</p>
                                         <p className="truncate text-sm font-semibold text-foreground">{service.category}</p>
-                                            </div>
-                                        
+                                    </div>
+
                                 </ul>
                             </div>
 
@@ -123,10 +123,12 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                     Final amount is confirmed by the technician after the job.
                                 </p>
 
-                                <Button size="lg" className="mt-6 h-12 w-full gap-2 rounded-xl text-base">
-                                    <CalendarCheck className="size-5" aria-hidden="true" />
-                                    Book this service
-                                </Button>
+                                <Link href={`/booking/${service._id}`} >
+                                    <Button size="lg" className="mt-6 h-12 w-full cursor-pointer gap-2 rounded-xl text-base">
+                                        <CalendarCheck className="size-5" aria-hidden="true" />
+                                        Book this service
+                                    </Button>
+                                </Link>
 
                                 <ul className="mt-6 space-y-2.5 border-t border-dashed pt-5 text-sm text-muted-foreground">
                                     <li className="flex items-center gap-2">
