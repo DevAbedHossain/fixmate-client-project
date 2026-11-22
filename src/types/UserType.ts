@@ -5,8 +5,18 @@ export interface IUser {
     name: string,
     image: string,
     phone: string,
-    location: string,
+    area: string,
     bio: string,
+    /** Older profiles saved the area as `location` */
+    location?: string,
 }
 
-
+/** Row in the admin "Manage Users" table */
+export interface IAdminUser {
+    _id: string,
+    name: string,
+    email: string,
+    image?: string,
+    role: IRole,
+    createdAt?: string,
+}

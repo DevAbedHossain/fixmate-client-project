@@ -14,6 +14,8 @@ export interface IBooking {
     // Service
     serviceId: string;
     serviceTitle: string;
+    serviceImage?: string;
+    category?: string;
     basePrice: number;
 
     // Technician
@@ -35,8 +37,19 @@ export interface IBooking {
     paidAt?: string;
     createdAt: string;
 
-    //common
-    success?: boolean;
-    message?: string;
-    data?: unknown;
+    // Job timeline (optional feature)
+    statusHistory?: { status: BookingStatus | "paid"; changedAt: string }[];
+
+    // Rating & review after payment (optional feature)
+    rating?: number;
+    review?: string;
+    reviewedAt?: string;
+}
+
+export interface IReview {
+    _id: string;
+    customerName: string;
+    rating: number;
+    review?: string;
+    reviewedAt: string;
 }
