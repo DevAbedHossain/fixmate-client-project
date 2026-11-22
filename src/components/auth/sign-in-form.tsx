@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Wrench } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -56,45 +56,53 @@ function GitHubIcon({ className }: IconProps) {
 
 /** Only allow same-site paths like "/services/123" (blocks "//evil.com" or full URLs). */
 const getSafeRedirect = (path?: string) =>
-  path && path.startsWith("/") && !path.startsWith("//") ? path : "/";
+  path && path.startsWith("/") && !path.startsWith("//") ? path : "/dashboard";
 
 const SignInForm = ({ redirectTo }: { redirectTo?: string }) => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const callbackURL = getSafeRedirect(redirectTo);
 
-  // UI-only for now: prevent the native submit until sign-in is wired to better-auth.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSignIn = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const userInfo = Object.fromEntries(formData.entries()) as { email: string, password: string };
-    console.log("user info", userInfo);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
 
-    const { data, error } = await signIn.email({
-      email: userInfo.email,
-      password: userInfo.password,
-      callbackURL,
-    })
-
-    if (data?.token) {
-      toast.add({
-        title: "success",
-        description: "Successfully login!"
-      })
-      // Go back to the page the user came from (e.g. the service they wanted to book)
-      router.push(callbackURL);
-      router.refresh();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password) {
+      toast.add({ type: "error", title: "Check your details", description: "Enter a valid email and your password." });
+      return;
     }
+
+    setIsSubmitting(true);
+    const { data, error } = await signIn.email({ email, password, callbackURL });
+    setIsSubmitting(false);
+
+    if (error || !data) {
+      toast.add({
+        type: "error",
+        title: "Sign in failed",
+        description: error?.status === 401 ? "Wrong email or password." : error?.message ?? "Please try again.",
+      });
+      return;
+    }
+
+    toast.add({ type: "success", title: "Welcome back!", description: "You are now signed in." });
+    // The page the user was trying to open, otherwise /dashboard → their own dashboard
+    router.push(callbackURL);
+    router.refresh();
   };
 
   const handleSocialLogin = async (socialName: SocialProvider) => {
-    const { data, error } = await signIn.social({
+    const { error } = await signIn.social({
       provider: socialName,
       callbackURL,
     });
 
     if (error) {
-      console.error("Social login failed:", error.message);
+      toast.add({ type: "error", title: "Social sign in failed", description: error.message ?? "Please try again." });
     }
   };
 
@@ -198,9 +206,10 @@ const SignInForm = ({ redirectTo }: { redirectTo?: string }) => {
           {/* TODO: wire to better-auth email/password sign-in. */}
           <Button
             type="submit"
+            disabled={isSubmitting}
             className="h-12 w-full rounded-xl bg-brand text-base text-brand-foreground hover:bg-brand/90"
           >
-            Sign In
+            {isSubmitting ? "Signing in…" : "Sign In"}
           </Button>
         </form>
       </CardContent>

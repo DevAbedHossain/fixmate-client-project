@@ -95,9 +95,13 @@ import {
     Star,
 } from "lucide-react";
 
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
 import SignUpForm from "@/components/auth/sign-up-form";
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
+import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
     title: "Sign Up | FixMate",
@@ -123,7 +127,11 @@ const benefits = [
     },
 ] as const;
 
-const SignUpPage = () => {
+const SignUpPage = async () => {
+    // Already signed in → straight to their dashboard
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (session) redirect("/dashboard");
+
     return (
         <>
             <Navbar />

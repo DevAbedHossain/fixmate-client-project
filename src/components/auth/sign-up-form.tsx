@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Camera, Check, Eye, EyeOff, User, UserPlus, Wrench, X } from "lucide-react";
+import { Camera, Check, Eye, EyeOff, User, Wrench, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -123,8 +123,6 @@ const SignUpForm = () => {
 
         if (Object.values(errors).some(Boolean)) return;
 
-        console.log("sign up form data", { ...values, role, image: imagePreview });
-
         const { data, error } = await signUp.email({
             name: values.fullName,
             email: values.email,
@@ -133,13 +131,25 @@ const SignUpForm = () => {
             role,
         });
 
-        if (data?.token) {
+        if (error || !data) {
             toast.add({
-                title: "success",
-                description: "successfully sign up"
+                type: "error",
+                title: "Sign up failed",
+                description: error?.code === "USER_ALREADY_EXISTS" || error?.status === 422
+                    ? "An account with this email already exists."
+                    : error?.message ?? "Please try again.",
             })
-            router.push("/")
+            return;
         }
+
+        toast.add({
+            type: "success",
+            title: "Account created",
+            description: `Welcome to FixMate, ${values.fullName.split(" ")[0]}!`,
+        })
+        // /dashboard sends the user to their role's dashboard
+        router.push("/dashboard")
+        router.refresh()
     };
 
     const nameError = showError("fullName");

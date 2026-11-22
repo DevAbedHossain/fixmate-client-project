@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect as redirectTo } from "next/navigation";
 import Image from "next/image";
 import { BadgeCheck, ShieldCheck, Zap } from "lucide-react";
 
 import SignInForm from "@/components/auth/sign-in-form";
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
+import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Sign In | FixMate",
@@ -20,6 +23,10 @@ const benefits = [
 
 const SignInPage = async ({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) => {
   const { redirect } = await searchParams;
+
+  // Already signed in → straight to their dashboard
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session) redirectTo("/dashboard");
 
   return (
     <>
