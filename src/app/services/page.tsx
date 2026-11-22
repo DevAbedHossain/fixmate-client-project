@@ -6,7 +6,7 @@ import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 import ServiceGrid from "@/components/shared/ServiceGrid";
 import { buttonVariants } from "@/components/ui/button";
-import { limitServices } from "@/lib/api/GetAPI";
+import { limitServices } from "@/lib/api";
 
 export const metadata: Metadata = {
     title: "Browse Services | FixMate",

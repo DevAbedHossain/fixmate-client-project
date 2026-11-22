@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 import EditServiceForm from "@/components/dashboard/technician/EditServiceForm";
 import ServiceStatusBadge from "@/components/dashboard/technician/ServiceStatusBadge";
-import { getServiceById } from "@/lib/api/GetAPI";
+import { getServiceById } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {

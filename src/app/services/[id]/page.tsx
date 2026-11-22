@@ -16,14 +16,21 @@ import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { getServiceById } from "@/lib/api/GetAPI";
+import { getServiceById } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { IService } from "@/types/Service";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 
 
 export default async function ServiceDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+    const user = session?.user;
+
     const service: IService | null = await getServiceById(id);
 
     if (!service) notFound();
@@ -123,7 +130,7 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                     Final amount is confirmed by the technician after the job.
                                 </p>
 
-                                <Link href={`/booking/${service._id}`} >
+                                <Link href={`/booking/${service._id}`} className={`${user?.role === "customer" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "disabled"}`} >
                                     <Button size="lg" className="mt-6 h-12 w-full cursor-pointer gap-2 rounded-xl text-base">
                                         <CalendarCheck className="size-5" aria-hidden="true" />
                                         Book this service

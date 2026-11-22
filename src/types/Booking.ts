@@ -34,4 +34,9 @@ export interface IBooking {
     paymentStatus?: PaymentStatus;
     paidAt?: string;
     createdAt: string;
+
+    //common
+    success?: boolean;
+    message?: string;
+    data?: any;
 }

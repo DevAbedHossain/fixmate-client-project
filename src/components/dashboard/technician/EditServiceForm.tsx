@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 
 import { toast } from "@/components/ui/toast";
-import { updateService } from "@/lib/api/GetAPI";
+import { updateService } from "@/lib/api";
 import type { IService } from "@/types/Service";
 
 import ServiceForm, { type ServiceFormValues } from "./ServiceForm";

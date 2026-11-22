@@ -1,8 +1,6 @@
-import { IBooking } from "@/types/Booking";
 import { IService } from "@/types/Service";
-import { IUser } from "@/types/UserType";
 
-export const baseURL = process.env.NEXT_PUBLIC_API_URL;
+import { baseURL } from "./config";
 
 export const createService = async (data: IService) => {
     const res = await fetch(`${baseURL}/service`, {
@@ -64,43 +62,6 @@ export const deleteService = async (id: string) => {
 
     if (!res.ok) {
         throw new Error("Failed to delete service.");
-    }
-
-    return res.json();
-}
-
-export const updateUser = async (data: IUser) => {
-    const res = await fetch(`${baseURL}/user/${data._id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data),
-    })
-    return res.json();
-}
-
-export const getBookings = async (): Promise<IBooking[]> => {
-    const res = await fetch(`${baseURL}/bookings`, { cache: "no-store" });
-
-    if (!res.ok) {
-        throw new Error("Failed to load bookings.");
-    }
-
-    return res.json();
-}
-
-export const updateBooking = async (id: string, data: Partial<IBooking>) => {
-    const res = await fetch(`${baseURL}/booking/${id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data),
-    })
-
-    if (!res.ok) {
-        throw new Error("Failed to update booking.");
     }
 
     return res.json();

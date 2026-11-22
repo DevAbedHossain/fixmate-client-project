@@ -7,7 +7,7 @@ import { ArrowLeft, Plus, ShieldCheck } from "lucide-react";
 import ServiceForm, { type ServiceFormValues } from "@/components/dashboard/technician/ServiceForm";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
-import { createService } from "@/lib/api/GetAPI";
+import { createService } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 
 const MY_SERVICES_URL = "/dashboard/technician/my-services";

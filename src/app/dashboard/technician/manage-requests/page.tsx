@@ -8,7 +8,7 @@ import RequestStatusFilter, {
     REQUEST_FILTERS,
     type RequestFilter,
 } from "@/components/dashboard/technician/requests/RequestStatusFilter";
-import { getBookings } from "@/lib/api/GetAPI";
+import { getBookings } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {

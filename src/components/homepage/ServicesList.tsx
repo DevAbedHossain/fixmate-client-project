@@ -3,7 +3,7 @@ import { ArrowRight, PackageOpen } from "lucide-react";
 
 import ServiceGrid from "@/components/shared/ServiceGrid";
 import { buttonVariants } from "@/components/ui/button";
-import { limitServices } from "@/lib/api/GetAPI";
+import { limitServices } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const HOME_SERVICE_COUNT = 6;

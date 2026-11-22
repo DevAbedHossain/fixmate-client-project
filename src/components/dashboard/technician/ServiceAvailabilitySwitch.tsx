@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toast";
-import { updateService } from "@/lib/api/GetAPI";
+import { updateService } from "@/lib/api";
 
 interface ServiceAvailabilitySwitchProps {
     serviceId: string;

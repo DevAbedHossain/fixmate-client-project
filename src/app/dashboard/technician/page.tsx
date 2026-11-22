@@ -5,7 +5,7 @@ import { BadgeCheck, BriefcaseBusiness, ClipboardList, Wallet } from "lucide-rea
 
 import OverviewPanel from "@/components/dashboard/technician/overview/OverviewPanel";
 import StatCard from "@/components/dashboard/technician/overview/StatCard";
-import { getBookings, getServices } from "@/lib/api/GetAPI";
+import { getBookings, getServices } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { formatCurrency, formatDate, formatTicket } from "@/lib/format";
 

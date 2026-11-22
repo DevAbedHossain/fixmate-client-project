@@ -23,7 +23,7 @@ import { useSession } from "@/lib/auth-client";
 import { toast } from "../ui/toast";
 import React, { useRef, useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
-import { updateUser } from "@/lib/api/GetAPI";
+import { updateUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 

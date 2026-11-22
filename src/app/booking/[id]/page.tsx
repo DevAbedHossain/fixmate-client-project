@@ -27,9 +27,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServiceById } from "@/lib/api/GetAPI";
+import { createBooking, getServiceById } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { formatCurrency } from "@/lib/format";
+import BookingAction from "@/components/booking/BookingAction";
 
 const getInitials = (name = "") =>
     name
@@ -78,6 +79,7 @@ function IconField({
 const BookingSingleId = async ({ params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params;
 
+
     const session = await auth.api.getSession({
         headers: await headers(),
     });
@@ -89,6 +91,9 @@ const BookingSingleId = async ({ params }: { params: Promise<{ id: string }> }) 
     const price = Number(service.basePrice);
     const hours = Number(service.estimatedDuration);
     const isHomeVisit = service.serviceMode === "Home Visit";
+
+
+
 
     return (
         <>
@@ -299,10 +304,7 @@ const BookingSingleId = async ({ params }: { params: Promise<{ id: string }> }) 
                                         </span>
                                     </div>
 
-                                    <Button size="lg" className="mt-3 h-12 w-full gap-2 rounded-xl text-base">
-                                        <Lock className="size-4" aria-hidden="true" />
-                                        Confirm &amp; Pay {formatCurrency(price)}
-                                    </Button>
+                                    <BookingAction service={service} user={user} price={price} />
 
                                     <p className="flex items-center justify-center gap-1.5 pt-1 text-xs text-muted-foreground">
                                         <ShieldCheck className="size-3.5 text-emerald-600" aria-hidden="true" />

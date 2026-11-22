@@ -6,7 +6,7 @@ import { Check, Loader2, Play, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { updateBooking } from "@/lib/api/GetAPI";
+import { updateBooking } from "@/lib/api";
 import type { IBooking } from "@/types/Booking";
 
 import { PaymentStatusBadge } from "./BookingStatusBadge";

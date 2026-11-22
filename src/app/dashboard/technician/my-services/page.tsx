@@ -5,7 +5,7 @@ import { PackageOpen, Plus } from "lucide-react";
 
 import MyServicesList from "@/components/dashboard/technician/MyServicesList";
 import { buttonVariants } from "@/components/ui/button";
-import { getServices } from "@/lib/api/GetAPI";
+import { getServices } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
