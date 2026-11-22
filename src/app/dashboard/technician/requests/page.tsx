@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarDays, Inbox, Mail, MapPin, Phone } from "lucide-react";
 
@@ -11,7 +10,7 @@ import RequestStatusFilter, {
 } from "@/components/dashboard/technician/requests/RequestStatusFilter";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getTechnicianBookings } from "@/lib/api";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { formatCurrency, formatDate, formatTicket } from "@/lib/format";
 import { getServerToken } from "@/lib/server-token";
 
@@ -29,7 +28,7 @@ export default async function ManageRequestPage({
 }: {
     searchParams: Promise<{ status?: string }>;
 }) {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSession();
     if (!session) redirect("/sign-in");
 
     const { status } = await searchParams;

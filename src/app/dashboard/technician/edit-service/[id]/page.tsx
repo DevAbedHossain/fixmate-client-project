@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -7,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import EditServiceForm from "@/components/dashboard/technician/EditServiceForm";
 import ServiceStatusBadge from "@/components/dashboard/technician/ServiceStatusBadge";
 import { getServiceById } from "@/lib/api";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
     title: "Edit Service | FixMate",
@@ -16,7 +15,7 @@ export const metadata: Metadata = {
 export default async function EditServicePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSession();
     if (!session) {
         redirect("/sign-in");
     }

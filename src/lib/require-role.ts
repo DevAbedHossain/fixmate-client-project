@@ -1,11 +1,10 @@
 import "server-only";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import type { IRole } from "@/types/UserType";
 
-import { auth } from "./auth";
+import { getSession } from "./session";
 
 /**
  * Server guard for role-based pages.
@@ -14,7 +13,7 @@ import { auth } from "./auth";
  * Returns the session when the role matches.
  */
 export const requireRole = async (role: IRole) => {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSession();
 
     if (!session) {
         redirect("/sign-in");

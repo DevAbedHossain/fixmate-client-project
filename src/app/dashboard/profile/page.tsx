@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import ProfileUpdate from "@/components/dashboard/ProfileUpdate";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
     title: "Update Profile | FixMate",
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 
 /** Shared by every role. */
 export default async function ProfilePage() {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSession();
     if (!session) redirect("/sign-in");
 
     const { user } = session;

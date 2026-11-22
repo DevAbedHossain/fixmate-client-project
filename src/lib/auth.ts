@@ -2,9 +2,42 @@ import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
+import { attachDatabasePool } from "@vercel/functions";
 
-const client = new MongoClient(`${process.env.BETTER_AUTH_MONGO_DB_URL}`);
+const client = new MongoClient(`${process.env.BETTER_AUTH_MONGO_DB_URL}`, {
+    // Drop idle sockets before Vercel freezes the function, so we don't resume on dead ones
+    maxIdleTimeMS: 30_000,
+});
+// Lets Vercel release idle connections before the function is suspended (no-op locally)
+attachDatabasePool(client);
 const db = client.db("fixmate");
+
+/** True when the error (or its cause) means the Mongo client lost its connection. */
+const isConnectionClosed = (error: unknown): boolean => {
+    let current = error as { name?: string; cause?: unknown } | undefined;
+    while (current) {
+        if (current.name === "MongoTopologyClosedError" || current.name === "MongoNotConnectedError") {
+            return true;
+        }
+        current = current.cause as typeof current;
+    }
+    return false;
+};
+
+/**
+ * Runs a DB-backed auth call. If the serverless instance resumed with a closed
+ * Mongo connection, reconnect once and retry instead of failing the page.
+ */
+export const withDbRetry = async <T>(task: () => Promise<T>): Promise<T> => {
+    try {
+        return await task();
+    } catch (error) {
+        if (!isConnectionClosed(error)) throw error;
+        await client.close(true).catch(() => {});
+        await client.connect();
+        return task();
+    }
+};
 
 /** Roles a user may pick at sign up. Admin is created manually only. */
 const SIGN_UP_ROLES = ["customer", "technician"];

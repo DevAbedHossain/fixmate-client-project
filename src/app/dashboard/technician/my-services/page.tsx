@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PackageOpen, Plus } from "lucide-react";
@@ -6,13 +5,13 @@ import { PackageOpen, Plus } from "lucide-react";
 import MyServicesList from "@/components/dashboard/technician/MyServicesList";
 import { buttonVariants } from "@/components/ui/button";
 import { getMyServices } from "@/lib/api";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { getServerToken } from "@/lib/server-token";
 import { cn } from "@/lib/utils";
 
 
 export default async function MyServicesPage() {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSession();
 
     if (!session) {
         redirect("/sign-in");
