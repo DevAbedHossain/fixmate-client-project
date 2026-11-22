@@ -23,6 +23,9 @@ More seeded accounts: `technician2@fixmate.com`, `technician3@fixmate.com` (pass
 - **Pay after service with Stripe** — a Pay Now button appears only on completed, unpaid jobs. The amount always comes from the database, and the same payment can never be saved twice.
 - **Server-side search, filter & sort** — search by title or category, filter by category and service mode, sort by price or newest. Filters live in the URL, so they survive a reload and home-page category cards open the page pre-filtered.
 - **Admin moderation** — approve or reject services (pending shown first), change user roles (never your own), read-only view of all bookings and every Stripe transaction with total revenue.
+- **Job timeline tracker** — every booking records its status history, shown as a step tracker (Requested → Accepted → In Progress → Completed → Paid) in My Bookings.
+- **Ratings & reviews** — after paying, customers rate the job 1–5 stars with a short review; the average rating shows on service cards and the details page.
+- **Server-side pagination** — Browse Services pages through results with MongoDB `skip`/`limit`, together with search, filter and sort.
 - **Profiles with ImgBB uploads** — update name, phone, area, bio and photo; the navbar and dashboard update immediately.
 - **Polished UX** — responsive layout, loading skeletons, custom 404 and error pages, empty states, confirmation modals and toast notifications for every action.
 
