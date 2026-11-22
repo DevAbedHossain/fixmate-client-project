@@ -1,38 +1,65 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import {
     ArrowLeft,
     BadgeCheck,
     ChevronRight,
+    Clock3,
     House,
     MapPin,
     ShieldCheck,
     Store,
+    Tag,
     Wrench,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getServiceById } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getPublicProfile, getServiceById, getServiceReviews } from "@/lib/api";
+import { RatingBadge, RatingStars } from "@/components/shared/RatingStars";
+import { formatCurrency, formatDate, formatDuration } from "@/lib/format";
 import { IService } from "@/types/Service";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import BookingRequest from "@/components/booking/BookingRequest";
 
+type PageProps = { params: Promise<{ id: string }> };
 
+/** Only approved + available services are public; anything else is a 404. */
+const getPublicService = async (id: string): Promise<IService | null> => {
+    const service = await getServiceById(id);
+    if (!service || service.approvalStatus !== "approved" || !service.isAvailable) return null;
+    return service;
+};
 
-export default async function ServiceDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const service = await getPublicService((await params).id);
+    return service
+        ? { title: `${service.title} | FixMate`, description: service.description.slice(0, 160) }
+        : { title: "Service not found | FixMate" };
+}
+
+export default async function ServiceDetailsPage({ params }: PageProps) {
     const { id } = await params;
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
-    const user = session?.user;
-
-    const service: IService | null = await getServiceById(id);
+    const service = await getPublicService(id);
 
     if (!service) notFound();
+
+    // Technician summary: photo, area and bio from their profile
+    const [technician, reviews] = await Promise.all([
+        service.technicianId ? getPublicProfile(service.technicianId) : null,
+        getServiceReviews(id),
+    ]);
+    const technicianArea = technician?.area || technician?.location || service.serviceArea;
+    const isHomeVisit = service.serviceMode === "Home Visit";
+
+    const facts: { icon: LucideIcon; label: string; value: string }[] = [
+        { icon: Tag, label: "Category", value: service.category },
+        { icon: isHomeVisit ? House : Store, label: "Service mode", value: service.serviceMode },
+        { icon: MapPin, label: "Service area", value: service.serviceArea },
+        { icon: Clock3, label: "Estimated duration", value: formatDuration(service.estimatedDuration) },
+    ];
 
     return (
         <>
@@ -91,18 +118,26 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                 <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
                                     {service.title}
                                 </h1>
-                                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                                    <MapPin className="size-4" aria-hidden="true" />
-                                    {service.serviceArea}
-                                </p>
+                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <MapPin className="size-4" aria-hidden="true" />
+                                        {service.serviceArea}
+                                    </span>
+                                    <RatingBadge avg={service.ratingAvg} count={service.ratingCount} className="text-sm" />
+                                </div>
 
                                 <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-
-                                    <div className="min-w-0">
-                                        <p className="text-xs font-medium text-muted-foreground">Category</p>
-                                        <p className="truncate text-sm font-semibold text-foreground">{service.category}</p>
-                                    </div>
-
+                                    {facts.map(({ icon: Icon, label, value }) => (
+                                        <li key={label} className="flex items-center gap-3 rounded-2xl bg-muted/60 p-4">
+                                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                                <Icon className="size-5" aria-hidden="true" />
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-medium text-muted-foreground">{label}</p>
+                                                <p className="truncate text-sm font-semibold text-foreground">{value}</p>
+                                            </div>
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
 
@@ -112,6 +147,38 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                 <p className="leading-7 whitespace-pre-line text-muted-foreground">
                                     {service.description}
                                 </p>
+                            </section>
+
+                            {/* Reviews */}
+                            <section className="rounded-3xl border bg-card p-6 md:p-8">
+                                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                                    <h2 className="text-lg font-semibold text-foreground">Customer reviews</h2>
+                                    {service.ratingAvg ? (
+                                        <span className="flex items-center gap-2 text-sm">
+                                            <RatingStars value={service.ratingAvg} />
+                                            <span className="font-semibold">{service.ratingAvg.toFixed(1)}</span>
+                                            <span className="text-muted-foreground">· {service.ratingCount} {service.ratingCount === 1 ? "review" : "reviews"}</span>
+                                        </span>
+                                    ) : null}
+                                </div>
+                                {reviews.length === 0 ? (
+                                    <p className="rounded-2xl bg-muted/60 p-4 text-sm text-muted-foreground">
+                                        No reviews yet. Customers can rate this service after a paid job.
+                                    </p>
+                                ) : (
+                                    <ul className="divide-y">
+                                        {reviews.map((item) => (
+                                            <li key={item._id} className="space-y-1.5 py-4 first:pt-0 last:pb-0">
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                    <p className="font-medium">{item.customerName}</p>
+                                                    <span className="text-xs text-muted-foreground">{formatDate(item.reviewedAt)}</span>
+                                                </div>
+                                                <RatingStars value={item.rating} />
+                                                {item.review && <p className="text-sm leading-6 text-muted-foreground">{item.review}</p>}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </section>
                         </div>
 
@@ -151,7 +218,9 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
 
                                 <div className="flex items-center gap-4">
                                     <Avatar className="size-16">
-                                        {/* Add <AvatarImage src={...} /> here once the technician photo is available */}
+                                        {technician?.image && (
+                                            <AvatarImage src={technician.image} alt={service.technicianName} className="object-cover" />
+                                        )}
                                         <AvatarFallback className="bg-primary/10 text-lg font-bold text-primary">
                                             {service.technicianName.toString().split(" ").map((n) => n[0]).join("")}
                                         </AvatarFallback>
@@ -167,13 +236,13 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                         </p>
                                         <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
                                             <MapPin className="size-4 shrink-0" aria-hidden="true" />
-                                            <span className="truncate">{service.serviceArea}</span>
+                                            <span className="truncate">{technicianArea}</span>
                                         </p>
                                     </div>
                                 </div>
 
                                 <p className="mt-4 rounded-2xl bg-muted/60 p-4 text-sm leading-6 text-muted-foreground">
-                                    Technician bio goes here.
+                                    {technician?.bio || "This technician hasn't added a bio yet."}
                                 </p>
                             </div>
                         </aside>
