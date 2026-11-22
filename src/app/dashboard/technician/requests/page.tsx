@@ -10,46 +10,17 @@ import RequestStatusFilter, {
     type RequestFilter,
 } from "@/components/dashboard/technician/requests/RequestStatusFilter";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getServices } from "@/lib/api";
-import { getBookingRequests } from "@/lib/api/bookingRequest";
+import { getTechnicianBookings } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { formatCurrency, formatDate, formatTicket } from "@/lib/format";
-import type { IBooking } from "@/types/Booking";
-import type { IBookingRequest } from "@/types/BookingRequest";
-import type { IService } from "@/types/Service";
+import { getServerToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
     title: "Manage Requests | FixMate",
 };
 
-/** A request as stored — may also carry the extra booking-form fields. */
-type RawRequest = IBookingRequest & Partial<Omit<IBooking, "status">> & { _id: string };
-
 const isRequestFilter = (value: unknown): value is RequestFilter =>
     REQUEST_FILTERS.some((filter) => filter.value === value);
-
-/** MongoDB ids start with the creation time, so we get a date even without `createdAt`. */
-const dateFromId = (id: string) => new Date(parseInt(id.slice(0, 8), 16) * 1000).toISOString();
-
-/** Merge a request with its service into the shape the request components expect. */
-const toBooking = (request: RawRequest, service: IService): IBooking => ({
-    _id: request._id,
-    serviceId: request.serviceId,
-    serviceTitle: service.title,
-    basePrice: Number(request.price ?? service.basePrice),
-    technicianEmail: service.technicianEmail,
-    technicianName: service.technicianName,
-    customerName: request.customerName ?? "",
-    customerEmail: request.customerEmail ?? request.userEmail,
-    customerPhone: request.customerPhone ?? "",
-    address: request.address ?? "",
-    preferredDate: request.preferredDate ?? "",
-    problemDescription: request.problemDescription ?? "",
-    status: request.status ?? "requested",
-    finalAmount: request.finalAmount,
-    paymentStatus: request.paymentStatus,
-    createdAt: request.createdAt ?? dateFromId(request._id),
-});
 
 const dash = (value?: string) => value || "—";
 
@@ -64,22 +35,8 @@ export default async function ManageRequestPage({
     const { status } = await searchParams;
     const activeFilter: RequestFilter = isRequestFilter(status) ? status : "all";
 
-    const [requestBooking, services]: [RawRequest[], IService[]] = await Promise.all([
-        getBookingRequests(),
-        getServices(),
-    ]);
-
-    // Only requests for services owned by this technician, newest first
-    const myServices = new Map(
-        services
-            .filter((service) => service.technicianEmail === session.user.email)
-            .map((service) => [service._id, service])
-    );
-
-    const bookings = requestBooking
-        .filter((request) => myServices.has(request.serviceId))
-        .map((request) => toBooking(request, myServices.get(request.serviceId)!))
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Server returns only bookings where technicianEmail is this technician (newest first)
+    const bookings = await getTechnicianBookings(await getServerToken());
 
     const counts = Object.fromEntries(
         REQUEST_FILTERS.map(({ value }) => [

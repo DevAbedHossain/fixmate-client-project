@@ -9,7 +9,7 @@ const statusStyles: Record<BookingStatus, { label: string; className: string }> 
     },
     accepted: {
         label: "Accepted",
-        className: "border-teal-300 bg-teal-50 text-teal-700 dark:border-teal-500/40 dark:bg-teal-500/10 dark:text-teal-400",
+        className: "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-400",
     },
     "in-progress": {
         label: "In Progress",
@@ -53,7 +53,7 @@ export function PaymentStatusBadge({ status = "unpaid" }: { status?: PaymentStat
                     : "border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-400"
             )}
         >
-            {isPaid ? "Paid" : "Payment due"}
+            {isPaid ? "Paid" : "Unpaid"}
         </Badge>
     );
 }
