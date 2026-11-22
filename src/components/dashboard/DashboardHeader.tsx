@@ -2,30 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  BellIcon,
-  LogOutIcon,
-  User2,
-  Wrench,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Home } from "lucide-react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { buttonVariants } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import {
-  Avatar,
-  AvatarBadge,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { signOut, useSession } from "@/lib/auth-client"
-import type { IRole } from "@/types/UserType"
+import { useSession } from "@/lib/auth-client"
 
 function prettySegment(segment: string) {
   return segment
@@ -34,42 +18,50 @@ function prettySegment(segment: string) {
     .join(" ")
 }
 
-function getPageTitle(pathname: string, role: IRole) {
-  const segments = pathname.split("/").filter(Boolean) // e.g. ["dashboard", "customer", "bookings"]
-  const rest = segments.slice(1)
-
-  if (rest.length === 0) return "Dashboard"
-  if (rest.length === 1 && rest[0] === role) return `${prettySegment(rest[0])} Dashboard`
-  return prettySegment(rest[rest.length - 1])
+/** "/dashboard/customer/bookings" → "Bookings", "/dashboard/customer" → "Overview" */
+function getPageTitle(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean)
+  const last = segments[segments.length - 1] ?? "dashboard"
+  if (["customer", "technician", "admin", "dashboard"].includes(last)) return "Overview"
+  if (segments.includes("edit-service")) return "Edit Service"
+  return prettySegment(last)
 }
 
+/** Dashboard top bar: sidebar toggle, page title, link home, and the user's avatar/name/role. */
 const DashboardHeader = () => {
   const pathname = usePathname()
   const { data: session } = useSession()
   const user = session?.user
-  const role: IRole = (user?.role as IRole) || "customer"
-  const title = getPageTitle(pathname, role)
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur sm:px-5">
       <SidebarTrigger className="shrink-0" />
-
-      <div className="hidden h-6 w-px bg-border/60 md:block" aria-hidden="true" />
+      <Separator orientation="vertical" className="h-5" />
 
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-sm font-semibold sm:text-base">{title}</h1>
-        <p className="hidden truncate text-xs capitalize text-muted-foreground md:block">
-          {role} Dashboard
-        </p>
+        <h1 className="truncate text-sm font-semibold sm:text-base">{getPageTitle(pathname)}</h1>
+        <p className="hidden truncate text-xs text-muted-foreground sm:block">FixMate Dashboard</p>
       </div>
 
-      <Avatar>
-        <AvatarImage src={user?.image as string | undefined} alt={user?.name ?? ""} />
-        <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-        <AvatarBadge className="bg-green-600 dark:bg-green-800" />
-      </Avatar>
-      <span className="hidden max-w-28 truncate sm:inline">{user?.name}</span>
+      <Link href="/" className={buttonVariants({ variant: "ghost", size: "sm", className: "gap-1.5" })}>
+        <Home className="size-4" aria-hidden="true" />
+        <span className="hidden sm:inline">Home</span>
+      </Link>
 
+      {user && (
+        <div className="flex items-center gap-2.5">
+          <Avatar className="size-9">
+            {user.image && <AvatarImage src={user.image} alt={user.name} />}
+            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="hidden leading-tight md:block">
+            <p className="max-w-36 truncate text-sm font-medium">{user.name}</p>
+            <Badge variant="secondary" className="h-4 px-1.5 text-[10px] capitalize">
+              {user.role}
+            </Badge>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
