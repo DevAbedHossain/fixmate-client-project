@@ -8,7 +8,7 @@ import ServiceForm, { type ServiceFormValues } from "@/components/dashboard/tech
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
 import { createService } from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
+import { getClientToken, useSession } from "@/lib/auth-client";
 
 const MY_SERVICES_URL = "/dashboard/technician/my-services";
 
@@ -20,21 +20,21 @@ export default function AddServicePage() {
     const handleAddService = async (values: ServiceFormValues) => {
         if (!user) return;
 
-        const result = await createService({
-            ...values,
-            isAvailable: true,
-            approvalStatus: "pending",
-            technicianEmail: user.email,
-            technicianName: user.name,
-            technicianId: user.id,
-        });
+        // Technician name/email, approvalStatus and isAvailable are set by the server
+        const result = await createService(values, await getClientToken());
 
         if (result.insertedId) {
             toast.add({
-                title: "Success",
-                description: "Successfully added service",
+                title: "Service submitted",
+                description: "Your service is waiting for admin approval.",
             });
             router.push(MY_SERVICES_URL);
+            router.refresh();
+        } else {
+            toast.add({
+                title: "Could not add service",
+                description: result.message ?? "Please check the form and try again.",
+            });
         }
     };
 
@@ -69,7 +69,8 @@ export default function AddServicePage() {
                 submittingLabel="Creating..."
                 submitIcon={<Plus className="size-4" />}
                 cancelHref={MY_SERVICES_URL}
-                onSubmit={handleAddService}
+                technician={user ? { name: user.name, email: user.email } : undefined}
+            onSubmit={handleAddService}
             />
         </div>
     );

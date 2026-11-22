@@ -24,7 +24,7 @@ export default async function EditServicePage({ params }: { params: Promise<{ id
     const service = await getServiceById(id);
 
     // Hide services that don't exist or belong to another technician
-    if (!service || service.technicianId !== session.user.id) {
+    if (!service || service.technicianEmail !== session.user.email) {
         notFound();
     }
 

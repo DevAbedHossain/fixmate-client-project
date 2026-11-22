@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, Clock3, House, MapPin, Store, Wrench } from "lucide-react";
 
+import { RatingBadge } from "@/components/shared/RatingStars";
 import { buttonVariants } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { IService } from "@/types/Service";
 
@@ -30,7 +31,6 @@ const getInitials = (name = "") =>
 export default function ServiceCard({ service, className, priority = false }: ServiceCardProps) {
     const isHomeVisit = service.serviceMode === "Home Visit";
     const ModeIcon = isHomeVisit ? House : Store;
-    const hours = service.estimatedDuration;
 
     return (
         <article
@@ -89,11 +89,11 @@ export default function ServiceCard({ service, className, priority = false }: Se
                     </li>
                     <li className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-muted-foreground">
                         <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
-                        ~{hours} {hours === 1 ? "hr" : "hrs"}
+                        {formatDuration(service.estimatedDuration)}
                     </li>
                 </ul>
 
-                {/* Technician */}
+                {/* Technician + rating */}
                 <div className="flex items-center gap-2.5">
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                         {getInitials(service.technicianName)}
@@ -105,6 +105,7 @@ export default function ServiceCard({ service, className, priority = false }: Se
                             Verified technician
                         </p>
                     </div>
+                    <RatingBadge avg={service.ratingAvg} count={service.ratingCount} className="ml-auto shrink-0" />
                 </div>
 
                 {/* Footer — pinned to the bottom so price + button line up across a row */}

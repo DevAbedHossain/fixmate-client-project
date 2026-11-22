@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { deleteService } from "@/lib/api";
+import { getClientToken } from "@/lib/auth-client";
 
 interface DeleteServiceButtonProps {
     serviceId: string;
@@ -30,11 +31,10 @@ export default function DeleteServiceButton({ serviceId, serviceTitle }: DeleteS
 
     const handleDelete = async () => {
 
-        const result = await deleteService(serviceId);
-        console.log("Delete result:", result);
+        const result = await deleteService(serviceId, await getClientToken()).catch(() => null);
 
         setOpen(false);
-        if (result.deletedCount === 1) {
+        if (result?.deletedCount === 1) {
             toast.add({
                 title: "Service deleted",
                 description: `"${serviceTitle}" has been removed.`,

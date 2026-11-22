@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toast";
 import { updateService } from "@/lib/api";
+import { getClientToken } from "@/lib/auth-client";
 
 interface ServiceAvailabilitySwitchProps {
     serviceId: string;
@@ -25,8 +26,13 @@ export default function ServiceAvailabilitySwitch({
     const handleChange = async (nextChecked: boolean) => {
         setChecked(nextChecked);
 
-        const result = await updateService(serviceId, { isAvailable: nextChecked });
-        console.log("Update result:", result);
+        const result = await updateService(serviceId, { isAvailable: nextChecked }, await getClientToken()).catch(() => null);
+
+        if (!result) {
+            setChecked(!nextChecked);
+            toast.add({ title: "Update failed", description: "Could not change availability. Please try again." });
+            return;
+        }
 
         if (result.modifiedCount > 0) {
             toast.add({

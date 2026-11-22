@@ -8,6 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { formatCurrency } from "@/lib/format";
 import type { IService } from "@/types/Service";
 import ServiceAvailabilitySwitch from "./ServiceAvailabilitySwitch";
 import ServiceStatusBadge from "./ServiceStatusBadge";
@@ -64,7 +65,7 @@ export default function MyServicesList({ services }: { services: IService[] }) {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">{service.category}</TableCell>
-                                <TableCell className="font-mono">${service.basePrice * service.estimatedDuration}</TableCell>
+                                <TableCell className="font-mono">{formatCurrency(Number(service.basePrice))}</TableCell>
                                 <TableCell>
                                     <ServiceStatusBadge status={service.approvalStatus} />
                                 </TableCell>
@@ -102,7 +103,7 @@ export default function MyServicesList({ services }: { services: IService[] }) {
                             <div className="min-w-0 flex-1 space-y-1">
                                 <p className="font-semibold leading-snug">{service.title}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    {service.category} · <span className="font-mono">${service.basePrice * service.estimatedDuration}</span>
+                                    {service.category} · <span className="font-mono">{formatCurrency(Number(service.basePrice))}</span>
                                 </p>
                             </div>
                             <ServiceStatusBadge status={service.approvalStatus} />

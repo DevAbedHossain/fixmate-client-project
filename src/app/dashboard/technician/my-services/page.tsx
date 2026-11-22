@@ -5,8 +5,9 @@ import { PackageOpen, Plus } from "lucide-react";
 
 import MyServicesList from "@/components/dashboard/technician/MyServicesList";
 import { buttonVariants } from "@/components/ui/button";
-import { getServices } from "@/lib/api";
+import { getMyServices } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { getServerToken } from "@/lib/server-token";
 import { cn } from "@/lib/utils";
 
 
@@ -17,9 +18,8 @@ export default async function MyServicesPage() {
         redirect("/sign-in");
     }
 
-    const allServices = await getServices();
-    // Only show listings owned by the signed-in technician
-    const services = allServices.filter((service) => service.technicianId === session.user.id);
+    // Every service owned by this technician, including pending / rejected / paused ones
+    const services = await getMyServices(await getServerToken());
 
     return (
         <div className="mx-auto w-full max-w-6xl space-y-6">

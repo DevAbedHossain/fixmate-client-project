@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 
 import { toast } from "@/components/ui/toast";
 import { updateService } from "@/lib/api";
+import { getClientToken } from "@/lib/auth-client";
 import type { IService } from "@/types/Service";
 
 import ServiceForm, { type ServiceFormValues } from "./ServiceForm";
@@ -15,8 +16,8 @@ export default function EditServiceForm({ service }: { service: IService }) {
 
     const handleUpdate = async (values: ServiceFormValues) => {
         try {
-            // Any edit must be re-reviewed by an admin
-            await updateService(service._id ?? "", { ...values, approvalStatus: "pending" });
+            // The server sets approvalStatus back to "pending" so an admin re-reviews it
+            await updateService(service._id ?? "", values, await getClientToken());
 
             toast.add({
                 title: "Service updated",

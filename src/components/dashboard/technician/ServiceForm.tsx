@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ChangeEvent, SubmitEvent } from "react";
 import Link from "next/link";
-import { BriefcaseBusiness, Camera, Clock3, Loader2, MapPin, Wrench } from "lucide-react";
+import { BriefcaseBusiness, Camera, Clock3, Loader2, Lock, MapPin, Wrench } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -58,6 +58,8 @@ interface ServiceFormProps {
     submittingLabel: string;
     submitIcon?: React.ReactNode;
     cancelHref: string;
+    /** Shown read-only — the server copies these from the logged-in technician */
+    technician?: { name: string; email: string };
     onSubmit: (values: ServiceFormValues) => Promise<void>;
 }
 
@@ -84,6 +86,7 @@ export default function ServiceForm({
     submittingLabel,
     submitIcon,
     cancelHref,
+    technician,
     onSubmit,
 }: ServiceFormProps) {
     const [imageUrl, setImageUrl] = useState(initialData?.image ?? "");
@@ -98,7 +101,7 @@ export default function ServiceForm({
         try {
             setImageUrl(await uploadToImgbb(file));
         } catch {
-            toast.add({ title: "Upload failed", description: "Could not upload the image. Please try again." });
+            toast.add({ type: "error", title: "Upload failed", description: "Could not upload the image. Please try again." });
         } finally {
             setIsUploading(false);
         }
@@ -112,7 +115,15 @@ export default function ServiceForm({
         const serviceMode = String(formData.get("serviceMode") ?? "");
 
         if (!category || !serviceMode) {
-            toast.add({ title: "Missing fields", description: "Please select a category and a service mode." });
+            toast.add({ type: "error", title: "Missing fields", description: "Please select a category and a service mode." });
+            return;
+        }
+        if (!imageUrl) {
+            toast.add({ type: "error", title: "Image required", description: "Please upload a service image." });
+            return;
+        }
+        if (!(Number(formData.get("basePrice")) > 0)) {
+            toast.add({ type: "error", title: "Invalid price", description: "Base price must be a positive number." });
             return;
         }
 
@@ -125,7 +136,7 @@ export default function ServiceForm({
                 description: String(formData.get("description") ?? "").trim(),
                 image: imageUrl,
                 basePrice: Number(formData.get("basePrice") ?? 0),
-                estimatedDuration: Number(formData.get("estimatedDuration") ?? 0),
+                estimatedDuration: String(formData.get("estimatedDuration") ?? "").trim(),
                 serviceMode,
             });
         } finally {
@@ -154,6 +165,25 @@ export default function ServiceForm({
                 <Separator />
 
                 <CardContent className="space-y-5 pt-6">
+                    {technician && (
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="technicianName">Technician name</Label>
+                                <div className="relative">
+                                    <Input id="technicianName" value={technician.name} readOnly disabled className="pr-9" />
+                                    <Lock className="absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="technicianEmail">Technician email</Label>
+                                <div className="relative">
+                                    <Input id="technicianEmail" value={technician.email} readOnly disabled className="pr-9" />
+                                    <Lock className="absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <Label htmlFor="title">
                             Service Title <span className="text-destructive">*</span>
@@ -222,7 +252,9 @@ export default function ServiceForm({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="image">Service image</Label>
+                        <Label htmlFor="image">
+                            Service image <span className="text-destructive">*</span>
+                        </Label>
                         <div className="flex items-center gap-4">
                             <span className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-dashed border-border bg-muted text-muted-foreground">
                                 {isUploading ? (
@@ -275,7 +307,8 @@ export default function ServiceForm({
                                 id="basePrice"
                                 name="basePrice"
                                 type="number"
-                                min="0"
+                                min="1"
+                                step="any"
                                 required
                                 defaultValue={initialData?.basePrice}
                                 placeholder="15"
@@ -293,16 +326,16 @@ export default function ServiceForm({
                             <Input
                                 id="estimatedDuration"
                                 name="estimatedDuration"
-                                type="number"
-                                min="1"
                                 required
-                                defaultValue={initialData?.estimatedDuration}
-                                placeholder="1"
-                                className="pr-20 pl-9"
+                                defaultValue={
+                                    // Older services stored a plain number of hours
+                                    typeof initialData?.estimatedDuration === "number"
+                                        ? `${initialData.estimatedDuration} hours`
+                                        : initialData?.estimatedDuration
+                                }
+                                placeholder="e.g. 2-3 hours, 1 day"
+                                className="pl-9"
                             />
-                            <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
-                                Hours
-                            </span>
                         </div>
                     </div>
 
