@@ -38,5 +38,5 @@ export interface IBooking {
     //common
     success?: boolean;
     message?: string;
-    data?: any;
+    data?: unknown;
 }

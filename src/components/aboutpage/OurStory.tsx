@@ -84,7 +84,7 @@ const OurStory = () => {
                     </p>
 
                     <p className="mt-4 leading-7 text-slate-600">
-                        That's why we created FixMate — a platform designed
+                        That&apos;s why we created FixMate — a platform designed
                         to bring customers and repair professionals together
                         through a simple, transparent, and organized experience.
                     </p>

@@ -9,7 +9,6 @@ import {
     Clock3,
     CreditCard,
     House,
-    Lock,
     Mail,
     MapPin,
     Phone,
@@ -23,11 +22,10 @@ import type { LucideIcon } from "lucide-react";
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createBooking, getServiceById } from "@/lib/api";
+import { getServiceById } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { formatCurrency } from "@/lib/format";
 import BookingAction from "@/components/booking/BookingAction";

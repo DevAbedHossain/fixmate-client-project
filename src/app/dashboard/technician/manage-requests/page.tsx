@@ -1,42 +1,84 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Inbox } from "lucide-react";
+import { CalendarDays, Inbox, Mail, MapPin, Phone } from "lucide-react";
 
-import RequestCard from "@/components/dashboard/technician/requests/RequestCard";
+import { BookingStatusBadge } from "@/components/dashboard/technician/requests/BookingStatusBadge";
+import RequestActions from "@/components/dashboard/technician/requests/RequestActions";
 import RequestStatusFilter, {
     REQUEST_FILTERS,
     type RequestFilter,
 } from "@/components/dashboard/technician/requests/RequestStatusFilter";
-import { getBookings } from "@/lib/api";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { getServices } from "@/lib/api";
+import { getBookingRequests } from "@/lib/api/bookingRequest";
 import { auth } from "@/lib/auth";
+import { formatCurrency, formatDate, formatTicket } from "@/lib/format";
+import type { IBooking } from "@/types/Booking";
+import type { IBookingRequest } from "@/types/BookingRequest";
+import type { IService } from "@/types/Service";
 
 export const metadata: Metadata = {
     title: "Manage Requests | FixMate",
 };
 
+/** A request as stored — may also carry the extra booking-form fields. */
+type RawRequest = IBookingRequest & Partial<Omit<IBooking, "status">> & { _id: string };
+
 const isRequestFilter = (value: unknown): value is RequestFilter =>
     REQUEST_FILTERS.some((filter) => filter.value === value);
 
-export default async function ManageRequestsPage({
+/** MongoDB ids start with the creation time, so we get a date even without `createdAt`. */
+const dateFromId = (id: string) => new Date(parseInt(id.slice(0, 8), 16) * 1000).toISOString();
+
+/** Merge a request with its service into the shape the request components expect. */
+const toBooking = (request: RawRequest, service: IService): IBooking => ({
+    _id: request._id,
+    serviceId: request.serviceId,
+    serviceTitle: service.title,
+    basePrice: Number(request.price ?? service.basePrice),
+    technicianEmail: service.technicianEmail,
+    technicianName: service.technicianName,
+    customerName: request.customerName ?? "",
+    customerEmail: request.customerEmail ?? request.userEmail,
+    customerPhone: request.customerPhone ?? "",
+    address: request.address ?? "",
+    preferredDate: request.preferredDate ?? "",
+    problemDescription: request.problemDescription ?? "",
+    status: request.status ?? "requested",
+    finalAmount: request.finalAmount,
+    paymentStatus: request.paymentStatus,
+    createdAt: request.createdAt ?? dateFromId(request._id),
+});
+
+const dash = (value?: string) => value || "—";
+
+export default async function ManageRequestPage({
     searchParams,
 }: {
     searchParams: Promise<{ status?: string }>;
 }) {
     const session = await auth.api.getSession({ headers: await headers() });
-
-    if (!session) {
-        redirect("/sign-in");
-    }
+    if (!session) redirect("/sign-in");
 
     const { status } = await searchParams;
     const activeFilter: RequestFilter = isRequestFilter(status) ? status : "all";
 
-    const allBookings = await getBookings();
+    const [requestBooking, services]: [RawRequest[], IService[]] = await Promise.all([
+        getBookingRequests(),
+        getServices(),
+    ]);
 
-    // Only this technician's jobs, newest first
-    const bookings = allBookings
-        .filter((booking) => booking.technicianEmail === session.user.email)
+    // Only requests for services owned by this technician, newest first
+    const myServices = new Map(
+        services
+            .filter((service) => service.technicianEmail === session.user.email)
+            .map((service) => [service._id, service])
+    );
+
+    const bookings = requestBooking
+        .filter((request) => myServices.has(request.serviceId))
+        .map((request) => toBooking(request, myServices.get(request.serviceId)!))
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const counts = Object.fromEntries(
@@ -50,26 +92,23 @@ export default async function ManageRequestsPage({
         activeFilter === "all" ? bookings : bookings.filter((booking) => booking.status === activeFilter);
 
     return (
-        <div className="mx-auto w-full max-w-6xl space-y-6">
-            {/* Page header */}
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+            {/* Header */}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Manage requests</h1>
-                    <p className="text-sm text-muted-foreground">Move each job forward one step at a time.</p>
+                    <p className="text-sm text-muted-foreground">
+                        Review new bookings and move each job forward one step at a time.
+                    </p>
                 </div>
-
                 <RequestStatusFilter active={activeFilter} counts={counts} />
             </div>
 
-            {visibleBookings.length > 0 ? (
-                <div className="space-y-4">
-                    {visibleBookings.map((booking) => (
-                        <RequestCard key={booking._id} booking={booking} />
-                    ))}
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-card px-6 py-16 text-center">
-                    <Inbox className="size-10 text-muted-foreground" aria-hidden="true" />
+            {visibleBookings.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed bg-card px-6 py-16 text-center">
+                    <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <Inbox className="size-7" aria-hidden="true" />
+                    </span>
                     <div className="space-y-1">
                         <h2 className="font-semibold">No requests here</h2>
                         <p className="text-sm text-muted-foreground">
@@ -79,6 +118,113 @@ export default async function ManageRequestsPage({
                         </p>
                     </div>
                 </div>
+            ) : (
+                <>
+                    {/* Desktop: table */}
+                    <div className="hidden overflow-hidden rounded-2xl border bg-card shadow-sm lg:block">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                    <TableHead className="pl-5">Customer</TableHead>
+                                    <TableHead>Service</TableHead>
+                                    <TableHead>Address</TableHead>
+                                    <TableHead>Preferred date</TableHead>
+                                    <TableHead>Problem</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="w-52 pr-5 text-right">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {visibleBookings.map((booking) => (
+                                    <TableRow key={booking._id} className="align-top">
+                                        <TableCell className="py-4 pl-5">
+                                            <p className="font-medium">{dash(booking.customerName)}</p>
+                                            <p className="text-xs text-muted-foreground">{booking.customerEmail}</p>
+                                            <p className="text-xs text-muted-foreground">{dash(booking.customerPhone)}</p>
+                                        </TableCell>
+                                        <TableCell className="max-w-56 py-4">
+                                            <p className="truncate font-medium">{booking.serviceTitle}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {formatTicket(booking._id)} · {formatCurrency(booking.finalAmount ?? booking.basePrice)}
+                                            </p>
+                                        </TableCell>
+                                        <TableCell className="max-w-48 py-4 whitespace-normal text-muted-foreground">
+                                            {dash(booking.address)}
+                                        </TableCell>
+                                        <TableCell className="py-4 text-muted-foreground">
+                                            {dash(formatDate(booking.preferredDate))}
+                                        </TableCell>
+                                        <TableCell className="max-w-56 py-4">
+                                            <p className="line-clamp-2 whitespace-normal text-muted-foreground">
+                                                {dash(booking.problemDescription)}
+                                            </p>
+                                        </TableCell>
+                                        <TableCell className="py-4">
+                                            <BookingStatusBadge status={booking.status} />
+                                        </TableCell>
+                                        <TableCell className="py-4 pr-5">
+                                            <div className="ml-auto w-48">
+                                                <RequestActions booking={booking} />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Mobile / tablet: cards */}
+                    <div className="grid gap-4 sm:grid-cols-2 lg:hidden">
+                        {visibleBookings.map((booking) => (
+                            <article key={booking._id} className="flex flex-col rounded-2xl border bg-card p-5 shadow-sm">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="font-mono text-xs text-muted-foreground">
+                                            {formatTicket(booking._id)}
+                                        </p>
+                                        <h2 className="mt-0.5 line-clamp-2 font-semibold leading-snug">
+                                            {booking.serviceTitle}
+                                        </h2>
+                                    </div>
+                                    <BookingStatusBadge status={booking.status} />
+                                </div>
+
+                                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-center gap-2">
+                                        <Mail className="size-4 shrink-0" aria-hidden="true" />
+                                        <span className="truncate">
+                                            {booking.customerName ? `${booking.customerName} · ` : ""}
+                                            {booking.customerEmail}
+                                        </span>
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <Phone className="size-4 shrink-0" aria-hidden="true" />
+                                        {dash(booking.customerPhone)}
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <MapPin className="size-4 shrink-0" aria-hidden="true" />
+                                        <span className="truncate">{dash(booking.address)}</span>
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
+                                        {dash(formatDate(booking.preferredDate))}
+                                    </li>
+                                </ul>
+
+                                <p className="mt-3 line-clamp-3 rounded-xl bg-muted/60 px-3 py-2.5 text-sm text-muted-foreground">
+                                    {booking.problemDescription || "No problem description provided."}
+                                </p>
+
+                                <div className="mt-auto space-y-3 border-t border-dashed pt-4">
+                                    <p className="mt-4 text-xl font-bold tracking-tight">
+                                        {formatCurrency(booking.finalAmount ?? booking.basePrice)}
+                                    </p>
+                                    <RequestActions booking={booking} />
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     );

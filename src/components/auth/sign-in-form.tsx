@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,8 +54,14 @@ function GitHubIcon({ className }: IconProps) {
   );
 }
 
-const SignInForm = () => {
+/** Only allow same-site paths like "/services/123" (blocks "//evil.com" or full URLs). */
+const getSafeRedirect = (path?: string) =>
+  path && path.startsWith("/") && !path.startsWith("//") ? path : "/";
+
+const SignInForm = ({ redirectTo }: { redirectTo?: string }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const callbackURL = getSafeRedirect(redirectTo);
 
   // UI-only for now: prevent the native submit until sign-in is wired to better-auth.
   const handleSignIn = async (event: React.SubmitEvent<HTMLFormElement>) => {
@@ -66,7 +73,7 @@ const SignInForm = () => {
     const { data, error } = await signIn.email({
       email: userInfo.email,
       password: userInfo.password,
-      callbackURL: "/"
+      callbackURL,
     })
 
     if (data?.token) {
@@ -74,13 +81,16 @@ const SignInForm = () => {
         title: "success",
         description: "Successfully login!"
       })
+      // Go back to the page the user came from (e.g. the service they wanted to book)
+      router.push(callbackURL);
+      router.refresh();
     }
   };
 
   const handleSocialLogin = async (socialName: SocialProvider) => {
     const { data, error } = await signIn.social({
       provider: socialName,
-      callbackURL: "/",
+      callbackURL,
     });
 
     if (error) {

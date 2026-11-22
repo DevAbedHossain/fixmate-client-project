@@ -2,15 +2,15 @@ import { IBooking } from "@/types/Booking";
 
 import { baseURL } from "./config";
 
-export const getBookings = async (): Promise<IBooking[]> => {
-    const res = await fetch(`${baseURL}/bookings`, { cache: "no-store" });
+// export const getBookings = async (): Promise<IBooking[]> => {
+//     const res = await fetch(`${baseURL}/bookings`, { cache: "no-store" });
 
-    if (!res.ok) {
-        throw new Error("Failed to load bookings.");
-    }
+//     if (!res.ok) {
+//         throw new Error("Failed to load bookings.");
+//     }
 
-    return res.json();
-}
+//     return res.json();
+// }
 
 export const updateBooking = async (id: string, data: Partial<IBooking>) => {
     const res = await fetch(`${baseURL}/booking/${id}`, {
@@ -29,7 +29,7 @@ export const updateBooking = async (id: string, data: Partial<IBooking>) => {
 }
 
 export const createBooking = async (data: { serviceId: string; userEmail: string }) => {
-    const res = await fetch(`${baseURL}/booking/create-payment-intent`, {
+    const res = await fetch(`${baseURL}/create-payment-intent`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

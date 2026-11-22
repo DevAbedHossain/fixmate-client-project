@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "../ui/toast";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { updateUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -35,17 +35,7 @@ export default function ProfileUpdate() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>("");
-
-    useEffect(() => {
-        if (!imageFile) return;
-
-        const url = URL.createObjectURL(imageFile);
-        setImagePreview(url);
-
-        return () => URL.revokeObjectURL(url);
-    }, [imageFile]);
 
     const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

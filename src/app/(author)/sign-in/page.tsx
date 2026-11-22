@@ -18,7 +18,9 @@ const benefits = [
   { icon: BadgeCheck, label: "Pay only after the job is done" },
 ] as const;
 
-const SignInPage = () => {
+const SignInPage = async ({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) => {
+  const { redirect } = await searchParams;
+
   return (
     <>
 
@@ -78,7 +80,7 @@ const SignInPage = () => {
             </div>
           </div>
 
-          <SignInForm />
+          <SignInForm redirectTo={redirect} />
         </div>
       </section>
 

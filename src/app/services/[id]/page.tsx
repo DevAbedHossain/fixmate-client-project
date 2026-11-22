@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import {
     ArrowLeft,
     BadgeCheck,
-    CalendarCheck,
     ChevronRight,
     House,
     MapPin,
@@ -15,12 +14,12 @@ import {
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { getServiceById } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { IService } from "@/types/Service";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import BookingRequest from "@/components/booking/BookingRequest";
 
 
 
@@ -130,12 +129,7 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
                                     Final amount is confirmed by the technician after the job.
                                 </p>
 
-                                <Link href={`/booking/${service._id}`} className={`${user?.role === "customer" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "disabled"}`} >
-                                    <Button size="lg" className="mt-6 h-12 w-full cursor-pointer gap-2 rounded-xl text-base">
-                                        <CalendarCheck className="size-5" aria-hidden="true" />
-                                        Book this service
-                                    </Button>
-                                </Link>
+                                <BookingRequest service={service} />
 
                                 <ul className="mt-6 space-y-2.5 border-t border-dashed pt-5 text-sm text-muted-foreground">
                                     <li className="flex items-center gap-2">

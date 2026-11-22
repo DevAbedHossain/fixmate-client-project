@@ -1,29 +1,59 @@
 "use client";
 
+import { useState } from "react";
+import { Loader2, Lock } from "lucide-react";
 
-import {
-    Lock,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { createBooking } from "@/lib/api";
-
 import { formatCurrency } from "@/lib/format";
+import type { IService } from "@/types/Service";
 
+interface BookingActionProps {
+    service: IService;
+    user?: { email: string } | null;
+    price: number;
+}
 
+const BookingAction = ({ service, user, price }: BookingActionProps) => {
+    const [isLoading, setIsLoading] = useState(false);
 
-
-const BookingAction = ({ service, user, price }: { service: any; user: any; price: number }) => {
     const handleConfirmAndPay = async () => {
-        const result = await createBooking({ serviceId: service._id || "", userEmail: user?.email || "" }) as { success: boolean; message: string; data?: any };
+        if (!user?.email) {
+            toast.add({ title: "Please sign in", description: "You need to be signed in to book a service." });
+            return;
+        }
 
-        if (result.success) {
-            console.log("Booking created successfully:", result);
+        setIsLoading(true);
+        try {
+            const result = await createBooking({ serviceId: service._id || "", userEmail: user.email });
+
+            if (result.success && result.url) {
+                // Go to the Stripe Checkout page
+                window.location.href = result.url;
+                return;
+            }
+
+            throw new Error("Could not start payment.");
+        } catch {
+            toast.add({ title: "Payment failed", description: "Something went wrong. Please try again." });
+            setIsLoading(false);
         }
     };
+
     return (
-        <Button onClick={handleConfirmAndPay} size="lg" className="mt-3 h-12 w-full gap-2 rounded-xl text-base">
-            <Lock className="size-4" aria-hidden="true" />
-            Confirm &amp; Pay {formatCurrency(price)}
+        <Button
+            onClick={handleConfirmAndPay}
+            disabled={isLoading}
+            size="lg"
+            className="mt-3 h-12 w-full gap-2 rounded-xl text-base"
+        >
+            {isLoading ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+                <Lock className="size-4" aria-hidden="true" />
+            )}
+            {isLoading ? "Redirecting…" : `Confirm & Pay ${formatCurrency(price)}`}
         </Button>
     );
 };
