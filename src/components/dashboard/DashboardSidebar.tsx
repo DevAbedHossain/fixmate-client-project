@@ -45,7 +45,7 @@
 //         { id: "dashboard", name: "Dashboard", url: "/dashboard/customer", icon: LayoutDashboard },
 //         { id: "bookings", name: "Bookings", url: "/dashboard/customer/bookings", icon: BookAIcon },
 //         { id: "payments", name: "Payments", url: "/dashboard/customer/payments", icon: Bookmark },
-//         { id: "profile-update", name: "Profile Update", url: "/dashboard/customer/profile-update", icon: Settings },
+//         { id: "profile-update", name: "Profile Update", url: "/dashboard/profile", icon: Settings },
 //     ],
 //     technician: [
 //         { id: "home", name: "Home", url: "/", icon: Home },
@@ -53,7 +53,7 @@
 //         { id: "add-service", name: "Add Service", url: "/dashboard/technician/add-service", icon: Building2 },
 //         { id: "my-services", name: "My Services", url: "/dashboard/technician/my-services", icon: Briefcase },
 //         { id: "manage-requests", name: "Manage Requests", url: "/dashboard/technician/manage-requests", icon: PlusCircle },
-//         { id: "profile-update", name: "Profile Update", url: "/dashboard/technician/profile-update", icon: Settings },
+//         { id: "profile-update", name: "Profile Update", url: "/dashboard/profile", icon: Settings },
 //     ],
 //     admin: [
 //         { id: "home", name: "Home", url: "/", icon: Home },
@@ -62,7 +62,7 @@
 //         { id: "services", name: "Services", url: "/dashboard/admin/services", icon: Building2 },
 //         { id: "bookings", name: "Bookings", url: "/dashboard/admin/bookings", icon: Briefcase },
 //         { id: "transactions", name: "Transactions", url: "/dashboard/admin/transactions", icon: CreditCard },
-//         { id: "profile-update", name: "Profile Update", url: "/dashboard/admin/profile-update", icon: Settings },
+//         { id: "profile-update", name: "Profile Update", url: "/dashboard/profile", icon: Settings },
 //     ],
 // }
 
@@ -140,7 +140,8 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { redirect, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "@/components/ui/toast";
 import Link from "next/link";
 import {
     Home,
@@ -213,7 +214,7 @@ const menuItemsByRole: Record<IRole, MenuItem[]> = {
         {
             id: "profile",
             name: "Profile Settings",
-            url: "/dashboard/customer/profile-update",
+            url: "/dashboard/profile",
             icon: Settings,
         },
     ],
@@ -241,13 +242,13 @@ const menuItemsByRole: Record<IRole, MenuItem[]> = {
         {
             id: "requests",
             name: "Manage Requests",
-            url: "/dashboard/technician/manage-requests",
+            url: "/dashboard/technician/requests",
             icon: ClipboardList,
         },
         {
             id: "profile",
             name: "Profile Settings",
-            url: "/dashboard/technician/profile-update",
+            url: "/dashboard/profile",
             icon: Settings,
         },
     ],
@@ -287,7 +288,7 @@ const menuItemsByRole: Record<IRole, MenuItem[]> = {
         {
             id: "profile",
             name: "Profile Settings",
-            url: "/dashboard/admin/profile-update",
+            url: "/dashboard/profile",
             icon: Settings,
         },
     ],
@@ -302,9 +303,13 @@ export function DashboardSidebar() {
 
     const menuItems = menuItemsByRole[role] || menuItemsByRole.customer;
 
-    const handleSignOut = () => {
-        signOut();
-        redirect("/")
+    const router = useRouter();
+
+    const handleSignOut = async () => {
+        await signOut();
+        toast.add({ type: "success", title: "Signed out", description: "See you next time!" });
+        router.push("/");
+        router.refresh();
     }
 
     return (
