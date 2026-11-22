@@ -35,7 +35,7 @@ export default function ServiceCard({ service, className, priority = false }: Se
     return (
         <article
             className={cn(
-                "group relative flex h-full w-full flex-col rounded-3xl border bg-card p-2 shadow-sm ring-primary/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-4",
+                "group relative flex h-full w-full flex-col rounded-3xl border bg-card p-2 shadow-sm transition-shadow duration-300 hover:shadow-lg",
                 className
             )}
         >
@@ -119,18 +119,18 @@ export default function ServiceCard({ service, className, priority = false }: Se
                         </span>
                     </div>
 
-                    {/* Stretched link: the whole card is clickable, with a single link for screen readers */}
+                    {/* Only the button navigates — the rest of the card is not a link */}
                     <Link
                         href={`/services/${service._id}`}
                         aria-label={`View details for ${service.title}`}
                         className={cn(
                             buttonVariants(),
-                            "h-10 w-full gap-1.5 rounded-xl after:absolute after:inset-0 after:rounded-3xl"
+                            "group/btn h-10 w-full gap-1.5 rounded-xl"
                         )}
                     >
                         View Details
                         <ArrowUpRight
-                            className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            className="size-4 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
                             aria-hidden="true"
                         />
                     </Link>

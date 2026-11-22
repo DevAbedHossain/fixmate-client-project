@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Receipt } from "lucide-react";
-
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getMyPayments } from "@/lib/api";
@@ -9,9 +8,6 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { requireRole } from "@/lib/require-role";
 import { getServerToken } from "@/lib/server-token";
 
-export const metadata: Metadata = {
-    title: "Payment History | FixMate",
-};
 
 export default async function PaymentHistoryPage() {
     await requireRole("customer");

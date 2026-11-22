@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, ClipboardList, Hammer, Wallet } from "lucide-react";
 
@@ -11,9 +10,6 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { requireRole } from "@/lib/require-role";
 import { getServerToken } from "@/lib/server-token";
 
-export const metadata: Metadata = {
-    title: "Dashboard | FixMate",
-};
 
 const ACTIVE = ["requested", "accepted", "in-progress"];
 

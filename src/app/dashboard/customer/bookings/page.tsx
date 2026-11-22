@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, CalendarX2, Wrench } from "lucide-react";
-
 import CustomerBookingActions from "@/components/dashboard/customer/CustomerBookingActions";
 import JobTimeline from "@/components/dashboard/customer/JobTimeline";
 import { BookingStatusBadge, PaymentStatusBadge } from "@/components/dashboard/technician/requests/BookingStatusBadge";
@@ -13,9 +12,6 @@ import { requireRole } from "@/lib/require-role";
 import { getServerToken } from "@/lib/server-token";
 import type { IBooking } from "@/types/Booking";
 
-export const metadata: Metadata = {
-    title: "My Bookings | FixMate",
-};
 
 function ServiceThumb({ booking, size = "size-12" }: { booking: IBooking; size?: string }) {
     return (

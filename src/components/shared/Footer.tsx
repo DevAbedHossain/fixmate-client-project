@@ -62,11 +62,11 @@ const quickLinks = [
 ] as const;
 
 const socialLinks = [
-  { label: "X", href: "https://x.com/fixmate", icon: XIcon },
-  { label: "Facebook", href: "https://facebook.com/fixmate", icon: FacebookIcon },
-  { label: "Instagram", href: "https://instagram.com/fixmate", icon: InstagramIcon },
-  { label: "LinkedIn", href: "https://linkedin.com/company/fixmate", icon: LinkedinIcon },
-  { label: "YouTube", href: "https://youtube.com/@fixmate", icon: YoutubeIcon },
+  { label: "X", href: "#", icon: XIcon },
+  { label: "Facebook", href: "#", icon: FacebookIcon },
+  { label: "Instagram", href: "#", icon: InstagramIcon },
+  { label: "LinkedIn", href: "#", icon: LinkedinIcon },
+  { label: "YouTube", href: "#", icon: YoutubeIcon },
 ] as const;
 
 const contactInfo = [
@@ -74,19 +74,19 @@ const contactInfo = [
     icon: Mail,
     label: "Email",
     value: "support@fixmate.com",
-    href: "mailto:support@fixmate.com",
+    href: "#",
   },
   {
     icon: Phone,
     label: "Phone",
     value: "+880 1700-123456",
-    href: "tel:+8801700123456",
+    href: "#",
   },
   {
     icon: MapPin,
     label: "Address",
     value: "House 12, Road 5, Dhanmondi, Dhaka 1205",
-    href: "https://maps.google.com/?q=Dhanmondi,+Dhaka",
+    href: "#",
   },
 ] as const;
 
