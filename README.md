@@ -88,30 +88,6 @@ The platform supports three types of users:
 - Vercel – Frontend deployment
 - Backend deployment – Configured separately
 
-## 📂 Project Structure
-
-```text
-fixmate/
-├── client/
-│   ├── public/
-│   ├── src/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── providers/
-│   │   ├── services/
-│   │   └── types/
-│   ├── .env.local
-│   └── package.json
-│
-└── server/
-    ├── index.js
-    ├── .env
-    └── package.json
-```
-
-*The structure above illustrates the frontend and backend organization; adjust folder names to match your actual repositories.*
 
 ## ⚙️ Installation & Setup
 
